@@ -21,8 +21,9 @@ code.
 - `app/page.tsx` — accueil : une couverture plein écran par projet.
 - `app/projets/[slug]/page.tsx` — page projet (statique).
 - `components/Cover.tsx` — couverture paysage (écran large) / portrait (écran en hauteur).
-- `components/Pager.tsx` — accueil : un geste = un projet (molette, clavier, tactile), flèches.
-- `components/Gallery.tsx` — vues « Grand » et « Mosaïque », retour.
+- `components/usePager.ts` — défilement « un geste = une étape » (molette, clavier, tactile), partagé.
+- `components/Pager.tsx` — accueil : une étape par projet, flèches.
+- `components/Gallery.tsx` — vues « Grand » (une photo centrée par geste) et « Mosaïque », retour.
 - `components/Img.tsx` — wrapper next/image avec fondu.
 - `components/Theme.tsx` / `Sync.tsx` — couleurs `--bg` / `--fg`.
 - `.github/workflows/photos.yml` + `scripts/photos.mjs` — optimisation auto des photos envoyées sur GitHub.
