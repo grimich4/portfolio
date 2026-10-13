@@ -1,0 +1,14 @@
+{
+  "titre": "Voyage pharaons",
+  "lieu": "Egypte",
+  "annee": "2026",
+  "texte": "Un voyage pharaonique",
+  "couleurs": [
+    "#0b0b0b",
+    "#f3f1ec"
+  ],
+  "couverture": {
+    "ordi": "IMG_20260311_000738.jpg",
+    "telephone": "P1050378.JPG"
+  }
+}

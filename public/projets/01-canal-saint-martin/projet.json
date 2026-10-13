@@ -1,3 +1,14 @@
 {
-  "titre": "Canal Saint-Martin"
+  "titre": "Canal Saint-Martin",
+  "lieu": "Paris",
+  "annee": "2026",
+  "texte": "Un été caniculaire.",
+  "couleurs": [
+    "#0b0b0b",
+    "#f3f1ec"
+  ],
+  "couverture": {
+    "ordi": "IMG_5527",
+    "telephone": "IMG_5514"
+  }
 }
