@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Img from "@/components/Img";
+import Pager from "@/components/Pager";
 import Sync from "@/components/Sync";
 import Theme from "@/components/Theme";
 import { coverOf, projects } from "@/data/projects";
@@ -11,16 +12,19 @@ export default function Home() {
 
   return (
     <main>
-      <Theme bg={first.bg} fg={first.fg} extra="html{scroll-snap-type:y proximity}" />
+      <Theme bg={first.bg} fg={first.fg} extra="@media (pointer:coarse){html{scroll-snap-type:y mandatory}}" />
       <Sync />
+      <Pager n={projects.length + 1} />
       <h1 className="sr-only">Gaspard David — projets photographiques</h1>
 
       {projects.map((p, i) => (
         <section
           key={p.slug}
+          id={p.slug}
+          data-page
           data-bg={p.colors.bg}
           data-fg={p.colors.fg}
-          className="flex h-svh snap-start flex-col px-3 pb-3 pt-[calc(3.5rem+env(safe-area-inset-top))] md:px-8 md:pb-8"
+          className="flex h-svh snap-start snap-always flex-col px-3 pb-3 pt-[calc(3.5rem+env(safe-area-inset-top))] md:px-8 md:pb-8"
         >
           <Link
             href={`/projets/${p.slug}`}
@@ -44,7 +48,7 @@ export default function Home() {
         </section>
       ))}
 
-      <footer className="flex items-center justify-between px-4 pb-8 pt-4 md:px-8">
+      <footer data-page className="flex snap-end items-center justify-between px-4 pb-8 pt-4 md:px-8">
         <span className="cap opacity-50">© {new Date().getFullYear()} Gaspard David</span>
         <span className="cap opacity-50">{pad(projects.length)} projets</span>
       </footer>

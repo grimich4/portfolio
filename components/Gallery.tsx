@@ -2,6 +2,8 @@
 
 import { useRef, useState } from "react";
 import { flushSync } from "react-dom";
+import Link from "next/link";
+import Arrow from "@/components/Arrow";
 import Img from "@/components/Img";
 import type { Photo } from "@/data/projects";
 
@@ -9,7 +11,7 @@ type Mode = "grand" | "mosaique";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
-export default function Gallery({ photos }: { photos: Photo[] }) {
+export default function Gallery({ photos, slug }: { photos: Photo[]; slug: string }) {
   const [mode, setMode] = useState<Mode>("grand");
   const top = useRef<HTMLDivElement>(null);
   const n = photos.length;
@@ -30,7 +32,12 @@ export default function Gallery({ photos }: { photos: Photo[] }) {
   return (
     <div ref={top} className="scroll-mt-14">
       <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-30 flex items-center justify-between bg-bg px-4 py-3 transition-colors duration-700 md:px-8">
-        <span className="cap opacity-50">{pad(n)} photos</span>
+        <Link href={`/#${slug}`} aria-label="Retour aux projets" className="group flex items-center gap-3">
+          <span className="transition-transform duration-500 ease-[var(--ease)] group-hover:-translate-x-1">
+            <Arrow dir="left" />
+          </span>
+          <span className="cap ul pb-0.5">Projets</span>
+        </Link>
         <div className="flex gap-5" role="group" aria-label="Affichage">
           {(["grand", "mosaique"] as const).map((m) => (
             <button

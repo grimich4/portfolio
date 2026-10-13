@@ -31,13 +31,13 @@ export default async function ProjectPage({ params }: Props) {
 
       <header className="px-4 pb-10 pt-[calc(3.5rem+env(safe-area-inset-top)+12vh)] md:px-8 md:pb-16">
         <p className="cap mb-5 opacity-50">
-          {p.place} · {p.year}
+          {p.place} · {p.year} · {String(p.photos.length).padStart(2, "0")} photos
         </p>
         <h1 className="font-serif text-[clamp(3.25rem,11vw,9rem)] leading-[0.9] tracking-[-0.02em]">{p.title}</h1>
         {p.text && <p className="mt-6 max-w-md text-[15px] leading-relaxed opacity-70">{p.text}</p>}
       </header>
 
-      <Gallery photos={p.photos} />
+      <Gallery photos={p.photos} slug={p.slug} />
 
       <Link
         href={`/projets/${nx.slug}`}
