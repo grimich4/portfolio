@@ -5,7 +5,7 @@ name: Synchro Drive
 
 on:
   schedule:
-    - cron: "17 * * * *"
+    - cron: "7 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -45,7 +45,6 @@ jobs:
         name: Installer
         run: |
           npm ci --no-audit --no-fund
-          sudo apt-get install -y -qq libheif-examples > /dev/null
 
       - if: steps.cfg.outputs.ok == 'true'
         name: Synchroniser
