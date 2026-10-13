@@ -280,16 +280,50 @@ export const sync = async (api, root) => {
 
 // ---------- Lancement ----------
 
+// Erreur lisible dans l'onglet Actions (annotation GitHub), sans secret.
+const fail = (msg) => {
+  console.error(process.env.GITHUB_ACTIONS ? `::error title=Synchro Drive::${msg.replace(/\r?\n/g, " ")}` : msg);
+  process.exit(1);
+};
+
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const raw = process.env.GDRIVE_KEY;
-  const root = process.env.GDRIVE_FOLDER?.trim();
-  if (!raw || !root) {
-    console.error("GDRIVE_KEY et GDRIVE_FOLDER doivent être définis (secrets du repo GitHub).");
-    process.exit(1);
+  const raw = process.env.GDRIVE_KEY?.trim();
+  const root = process.env.GDRIVE_FOLDER?.trim().replace(/^.*\/folders\//, "").replace(/[?#].*$/, "");
+  if (!raw || !root) fail("GDRIVE_KEY et GDRIVE_FOLDER doivent être définis (secrets du repo GitHub).");
+
+  let key;
+  try {
+    key = JSON.parse(raw);
+  } catch {
+    fail("GDRIVE_KEY n'est pas un JSON valide : recopie TOUT le contenu du fichier .json (de { à }).");
   }
-  const key = JSON.parse(raw);
-  const log = await sync(drive(await token(key)), root);
-  const sum = `${log.added} ajoutée(s), ${log.removed} retirée(s), projets : ${[...log.projects].join(", ") || "aucun"}`;
-  console.log(`Synchro terminée — ${sum}`);
-  if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `summary=${sum}\n`);
+  if (!key.client_email || !key.private_key) fail("GDRIVE_KEY ne ressemble pas à une clé de compte de service (client_email / private_key absents).");
+  console.log(`Compte de service : ${key.client_email}`);
+  console.log(`Dossier : ${root}`);
+
+  let tok;
+  try {
+    tok = await token(key);
+  } catch (e) {
+    fail(`Connexion à Google impossible : ${e.message}`);
+  }
+
+  const api = drive(tok);
+  try {
+    await api.list(root);
+  } catch (e) {
+    const m = String(e.message);
+    if (/ 404 /.test(m)) fail(`Dossier ${root} introuvable : vérifie GDRIVE_FOLDER et que le dossier est partagé avec ${key.client_email}.`);
+    if (/ 403 /.test(m) && /accessNotConfigured|has not been used|disabled/i.test(m)) fail("Google Drive API non activée sur le projet Google Cloud.");
+    fail(`Accès au dossier refusé : ${m.slice(0, 300)}`);
+  }
+
+  try {
+    const log = await sync(api, root);
+    const sum = `${log.added} ajoutée(s), ${log.removed} retirée(s), projets : ${[...log.projects].join(", ") || "aucun"}`;
+    console.log(`Synchro terminée — ${sum}`);
+    if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `summary=${sum}\n`);
+  } catch (e) {
+    fail(`Synchro interrompue : ${String(e.message).slice(0, 300)}`);
+  }
 }
