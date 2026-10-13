@@ -1,0 +1,72 @@
+name: Synchro Drive
+
+# Récupère les photos du dossier Google Drive « Site » et met le site à jour.
+# Automatique toutes les heures, ou à la main : Actions → Synchro Drive → Run workflow.
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: drive
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Vérifier la configuration
+        id: cfg
+        env:
+          K: ${{ secrets.GDRIVE_KEY }}
+          F: ${{ secrets.GDRIVE_FOLDER }}
+        run: |
+          if [ -z "$K" ] || [ -z "$F" ]; then
+            echo "Secrets GDRIVE_KEY / GDRIVE_FOLDER absents : synchro désactivée."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.cfg.outputs.ok == 'true'
+        uses: actions/checkout@v4
+
+      - if: steps.cfg.outputs.ok == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - if: steps.cfg.outputs.ok == 'true'
+        name: Installer
+        run: |
+          npm ci --no-audit --no-fund
+          sudo apt-get install -y -qq libheif-examples > /dev/null
+
+      - if: steps.cfg.outputs.ok == 'true'
+        name: Synchroniser
+        id: sync
+        env:
+          GDRIVE_KEY: ${{ secrets.GDRIVE_KEY }}
+          GDRIVE_FOLDER: ${{ secrets.GDRIVE_FOLDER }}
+        run: node scripts/drive.mjs
+
+      - if: steps.cfg.outputs.ok == 'true'
+        name: Publier
+        env:
+          SUMMARY: ${{ steps.sync.outputs.summary }}
+        run: |
+          git add -A public/projets
+          if git diff --cached --quiet; then
+            echo "Aucun changement."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Synchro Drive" -m "$SUMMARY"
+          git pull --rebase
+          git push

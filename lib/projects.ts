@@ -73,10 +73,15 @@ const read = (dir: string, file: string, alt: string): Photo | null => {
 };
 
 const load = (dir: string): Project | null => {
-  const jf = path.join(ROOT, dir, "projet.json");
-  if (!fs.existsSync(jf)) return null;
-  const m = JSON.parse(fs.readFileSync(jf, "utf8")) as Meta;
   const slug = dir.replace(/^\d+[-_ ]*/, "").toLowerCase();
+  // projet.json facultatif : sans lui, le titre vient du nom du dossier.
+  const jf = path.join(ROOT, dir, "projet.json");
+  let m: Meta = { titre: slug.replace(/-/g, " ").replace(/^./, (c) => c.toUpperCase()) };
+  try {
+    if (fs.existsSync(jf)) m = { ...m, ...(JSON.parse(fs.readFileSync(jf, "utf8")) as Meta) };
+  } catch {
+    console.warn(`projet.json illisible dans ${dir}, valeurs par défaut utilisées.`);
+  }
 
   const files = fs
     .readdirSync(path.join(ROOT, dir))

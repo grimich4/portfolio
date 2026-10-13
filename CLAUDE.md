@@ -8,6 +8,7 @@ depuis `main`. Chaque PR obtient une preview Vercel.
 - `npm run build` — doit passer avant toute PR
 - `npm run lint`
 - `node scripts/photos.mjs` — optimise les photos (lancé aussi par GitHub Actions)
+- `node scripts/drive.mjs` — synchro Google Drive (besoin de GDRIVE_KEY / GDRIVE_FOLDER)
 
 ## Contenu
 **Un dossier = un projet** dans `public/projets/NN-slug/` : photos +
@@ -24,7 +25,10 @@ code.
 - `components/Gallery.tsx` — vues « Grand » et « Mosaïque », retour.
 - `components/Img.tsx` — wrapper next/image avec fondu.
 - `components/Theme.tsx` / `Sync.tsx` — couleurs `--bg` / `--fg`.
-- `.github/workflows/photos.yml` + `scripts/photos.mjs` — optimisation auto des photos.
+- `.github/workflows/photos.yml` + `scripts/photos.mjs` — optimisation auto des photos envoyées sur GitHub.
+- `.github/workflows/drive.yml` + `scripts/drive.mjs` — synchro horaire du dossier Drive « Site » ;
+  les projets synchronisés ont un `.drive.json` (ne pas éditer à la main, ils seraient écrasés).
+- `scripts/optim.mjs` — optimisation partagée (HEIC → JPEG, 3000 px, sans EXIF).
 
 ## Principes (à respecter)
 - **Bicolore** : seulement `--bg` et `--fg` (classes `bg-bg`, `text-fg`,

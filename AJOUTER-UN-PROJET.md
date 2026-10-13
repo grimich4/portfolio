@@ -1,70 +1,76 @@
 # Ajouter un projet
 
-Un projet = un dossier dans `public/projets/`, avec ses photos et un petit
-fichier `projet.json`. Le numéro devant le nom fixe l'ordre sur l'accueil :
+## Le plus simple : depuis Google Drive
+
+(Configuration à faire une fois : voir `CONFIGURER-DRIVE.md`.)
+
+Dans le dossier **Site** de ton Drive, un sous-dossier = un projet :
 
 ```
-public/projets/
-  01-paris/
-    projet.json
-    IMG_0848.jpg
-    IMG_2081.jpg
-  02-littoral/
-  …
+Site/
+  01 Paris/
+  06 Venise/
+    IMG_1234.HEIC
+    IMG_1250.jpg
+    projet          ← Google Doc facultatif
 ```
 
-Le nom du dossier sans le numéro devient l'adresse : `06-venise` → `/projets/venise`.
+- Le **numéro** devant le nom fixe l'ordre sur l'accueil. Le reste donne le
+  titre et l'adresse : `06 Venise` → « Venise », `/projets/venise`.
+- Ajoute les photos comme tu veux : appli Drive sur téléphone, glisser-déposer
+  sur l'ordi. Taille d'origine et HEIC acceptés.
+- Le site se met à jour **dans l'heure**. Pour publier tout de suite : sur
+  github.com/grimich4/portfolio, **Actions → Synchro Drive → Run workflow**.
+- Supprimer une photo ou un dossier sur le Drive le retire aussi du site.
+- Renommer un dossier change son titre et son ordre.
 
-## projet.json
+### Le Google Doc « projet » (facultatif)
+
+Crée un Google Doc nommé **projet** dans le dossier, avec une info par ligne :
+
+```
+Titre : Venise
+Lieu : Italie
+Année : 2026
+Texte : Une phrase de présentation.
+Couleurs : #0b0b0b #f3f1ec
+Couverture ordi : IMG_1234
+Couverture téléphone : IMG_1250
+```
+
+- **Couleurs** : fond puis texte. Par défaut, noir et blanc cassé.
+- **Couverture ordi** : une photo **paysage**. **Couverture téléphone** : une
+  photo **portrait**. Le nom du fichier suffit, sans extension. Si tu n'en mets
+  pas, le site prend la première photo du bon format.
+- **Ordre** (facultatif) : `Ordre : IMG_3, IMG_1, IMG_2` pour imposer un ordre.
+  Sinon, les photos sont classées par nom de fichier.
+
+Les lignes sont toutes facultatives.
+
+## Autre méthode : directement sur GitHub
+
+Un dossier dans `public/projets/` (par exemple `06-venise/`) avec les photos et
+un `projet.json` facultatif :
 
 ```json
 {
   "titre": "Venise",
   "lieu": "Italie",
   "annee": "2026",
-  "texte": "Une phrase de présentation (facultatif).",
   "couleurs": ["#0b0b0b", "#f3f1ec"],
-  "couverture": {
-    "ordi": "IMG_1234.jpg",
-    "telephone": "IMG_1250.jpg"
-  }
+  "couverture": { "ordi": "IMG_1234.jpg", "telephone": "IMG_1250.jpg" }
 }
 ```
 
-- `couleurs` : [fond, texte].
-- `couverture.ordi` : une photo **paysage**, utilisée sur ordinateur.
-- `couverture.telephone` : une photo **portrait**, utilisée sur téléphone.
-  Si tu n'en mets pas, le site prend la première photo paysage ou portrait.
-- `ordre` (facultatif) : `["IMG_3.jpg", "IMG_1.jpg"]` pour imposer un ordre.
-  Sinon, les photos sont classées par nom de fichier.
-- `exemples` : nombre d'images temporaires. À supprimer quand le projet a
-  ses vraies photos.
+Envoi : github.com → `public/projets` → **Add file → Upload files**, depuis le
+navigateur, sur l'ordi comme sur le téléphone. Les photos sont optimisées
+automatiquement après l'envoi.
 
-## Envoyer les photos
+Un projet ajouté ainsi n'est jamais touché par la synchro Drive. S'il porte
+le même nom qu'un dossier du Drive, c'est la version GitHub qui reste.
 
-Les photos peuvent être envoyées en taille d'origine. Après chaque envoi,
-GitHub les redimensionne automatiquement à 3000 px, applique la bonne
-rotation et retire les métadonnées, dont la position GPS. Vercel publie le
-site environ une minute plus tard.
+## Projets d'exemple
 
-### Depuis l'ordinateur
-1. Va sur github.com/grimich4/portfolio, puis ouvre `public/projets`.
-2. **Add file → Create new file**. Dans le nom, tape `06-venise/projet.json`
-   (le `/` crée le dossier), colle le modèle ci-dessus, puis **Commit**.
-3. Ouvre le dossier `06-venise`, clique **Add file → Upload files**, glisse
-   les photos, puis **Commit**.
-
-### Depuis le téléphone
-Même chose dans le navigateur, sur github.com (pas dans l'app GitHub, qui ne
-permet pas l'envoi). Si le bouton **Upload files** n'apparaît pas, active
-« Version pour ordinateur » dans le navigateur. Dans le sélecteur, choisis
-**Photothèque**.
-
-iPhone : l'envoi depuis Safari convertit les photos en JPEG. Les fichiers
-`.heic` envoyés autrement ne sont pas pris en charge.
-
-### Modifier ou retirer
-- Changer un texte, une couleur ou une couverture : ouvre `projet.json`,
-  clique sur le crayon ✎, modifie, puis **Commit**.
-- Retirer une photo : ouvre-la sur GitHub, menu **…** → **Delete file**.
-- Changer l'ordre des projets : renomme le dossier (`06-venise` → `02-venise`).
+Les projets avec `"exemples"` dans leur `projet.json` utilisent des images
+temporaires. Supprime leur dossier dans `public/projets/` quand tu n'en as
+plus besoin.
