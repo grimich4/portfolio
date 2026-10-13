@@ -12,8 +12,12 @@ type Mode = "grand" | "mosaique";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
-// Hauteur occupée en haut par l'en-tête fixe + la barre « Projets / Grand ».
-const topBars = () => document.querySelector<HTMLElement>("[data-bar]")?.getBoundingClientRect().bottom ?? 0;
+// Hauteur occupée en haut par l'en-tête fixe + la barre « Projets / Grand »
+// une fois collée (sa hauteur, pas sa position : elle n'est pas encore
+// collée tant qu'on est sur le titre).
+const topBars = () =>
+  (document.querySelector<HTMLElement>("body > header")?.getBoundingClientRect().bottom ?? 0) +
+  (document.querySelector<HTMLElement>("[data-bar]")?.offsetHeight ?? 0);
 
 // Position de défilement qui centre une photo dans la zone visible sous les barres.
 const centered = (el: HTMLElement) => {
@@ -74,7 +78,7 @@ export default function Gallery({ photos, slug }: { photos: Photo[]; slug: strin
 
       {mode === "grand" ? (
         // Grand écart entre les photos : une seule est visible à la fois.
-        <div className="flex flex-col gap-[22svh] px-3 pb-[30svh] pt-[12svh] md:gap-[16svh] md:px-8">
+        <div className="flex flex-col gap-[34svh] px-3 pb-[30svh] pt-[12svh] md:gap-[16svh] md:px-8">
           {photos.map((p, i) => {
             const r = p.w / p.h;
             return (
