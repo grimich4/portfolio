@@ -108,7 +108,14 @@ const load = (dir: string): Project | null => {
   const desk = pick(m.couverture?.ordi) ?? land;
   const mob = pick(m.couverture?.telephone) ?? port;
 
-  const [bg, fg] = m.couleurs ?? ["#0b0b0b", "#f3f1ec"];
+  // Couleurs : celles de projet.json, sinon celles déduites des photos
+  // (.mood.json, écrit par scripts/mood.mjs), sinon noir et blanc cassé.
+  let auto: [string, string] | undefined;
+  try {
+    auto = JSON.parse(fs.readFileSync(path.join(ROOT, dir, ".mood.json"), "utf8")).couleurs;
+  } catch {}
+  const valid = (c?: string[]): c is [string, string] => c?.length === 2 && c.every((x) => /^#[0-9a-f]{3,8}$/i.test(x));
+  const [bg, fg] = valid(m.couleurs) ? m.couleurs : valid(auto) ? auto : ["#0b0b0b", "#f3f1ec"];
 
   return {
     slug,

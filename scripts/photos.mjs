@@ -3,6 +3,7 @@
 // En local : node scripts/photos.mjs
 import fs from "node:fs";
 import path from "node:path";
+import { moodOf } from "./mood.mjs";
 import { isPhoto, optimize } from "./optim.mjs";
 
 const ROOT = path.join(process.cwd(), "public", "projets");
@@ -19,5 +20,6 @@ for (const dir of fs.readdirSync(ROOT)) {
       n++;
     }
   }
+  if (await moodOf(d)) console.log(`◐ ${dir} : couleurs automatiques mises à jour`);
 }
 console.log(n ? `${n} photo(s) optimisée(s).` : "Rien à optimiser.");

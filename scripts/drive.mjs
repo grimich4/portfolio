@@ -20,6 +20,7 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { moodOf } from "./mood.mjs";
 import { isPhoto, optimize } from "./optim.mjs";
 
 const ROOT = path.join(process.cwd(), "public", "projets");
@@ -137,7 +138,7 @@ const fromDoc = (txt) => {
     const k = KEYS[plain(line.slice(0, i)).toLowerCase().replace(/\s+/g, " ").trim()];
     const v = line.slice(i + 1).trim();
     if (!k || !v) continue;
-    if (k === "couleurs") m.couleurs = v.match(/#[0-9a-f]{3,8}\b/gi)?.slice(0, 2);
+    if (k === "couleurs") m.couleurs = v.match(/#[0-9a-f]{3,8}\b/gi)?.slice(0, 2); // « auto » → rien
     else if (k === "ordi" || k === "telephone") (m.couverture ??= {})[k] = v;
     else if (k === "ordre") m.ordre = v.split(/[,;]\s*|\s+/).filter(Boolean);
     else m[k] = v;
@@ -260,6 +261,9 @@ export const sync = async (api, root) => {
     }
     // Les couvertures peuvent être désignées par le nom d'origine (IMG_1.HEIC).
     if (writeIfChanged(path.join(target, "projet.json"), JSON.stringify(meta, null, 2) + "\n")) log.projects.add(dir);
+
+    // Couleurs automatiques d'après les photos (utilisées si aucune n'est imposée).
+    if (await moodOf(target)) log.projects.add(dir);
 
     const sorted = { folder: man.folder, files: Object.fromEntries(Object.entries(man.files).sort()) };
     writeIfChanged(path.join(target, MANIFEST), JSON.stringify(sorted, null, 2) + "\n");

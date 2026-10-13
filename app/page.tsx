@@ -32,10 +32,13 @@ export default function Home() {
             style={{ background: `color-mix(in srgb, ${p.colors.fg} 8%, ${p.colors.bg})` }}
           >
             <Cover p={p} first={i === 0} />
-            <div className="absolute bottom-0 left-0 flex items-baseline gap-3 bg-bg pr-4 pt-2.5 text-fg transition-colors duration-700 md:gap-5 md:pr-7 md:pt-3.5">
-              <span className="cap opacity-60">{pad(i + 1)}</span>
-              <span className="font-serif text-[22px] leading-none md:text-[28px]">{p.title}</span>
-              <span className="cap opacity-60">{[p.place, p.year].filter(Boolean).join(" · ")}</span>
+            <div className="absolute bottom-0 left-0 max-w-[88%] bg-bg pr-5 pt-3 text-fg transition-colors duration-700 md:max-w-[70%] md:pr-10 md:pt-5">
+              <p className="cap mb-2 opacity-60 md:mb-3">
+                {[pad(i + 1), p.place, p.year].filter(Boolean).join(" · ")}
+              </p>
+              <h2 className="font-serif text-[40px] leading-[0.92] tracking-[-0.015em] md:text-[clamp(56px,6.5vw,104px)]">
+                {p.title}
+              </h2>
             </div>
           </Link>
         </section>

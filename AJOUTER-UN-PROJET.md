@@ -38,7 +38,10 @@ Couverture ordi : IMG_1234
 Couverture téléphone : IMG_1250
 ```
 
-- **Couleurs** : fond puis texte. Par défaut, noir et blanc cassé.
+- **Couleurs** : fond puis texte. **Si tu n'en mets pas, elles sont choisies
+  automatiquement d'après l'ambiance des photos** (luminosité, teintes
+  dominantes), avec toujours un texte bien lisible. Écrire `Couleurs : auto`
+  revient au même.
 - **Couverture ordi** : une photo **paysage**. **Couverture téléphone** : une
   photo **portrait**. Le nom du fichier suffit, sans extension. Si tu n'en mets
   pas, le site prend la première photo du bon format.
