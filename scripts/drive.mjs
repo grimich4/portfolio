@@ -21,7 +21,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { moodOf } from "./mood.mjs";
-import { isPhoto, optimize } from "./optim.mjs";
+import { isPhoto, optimize, warn } from "./optim.mjs";
 
 const ROOT = path.join(process.cwd(), "public", "projets");
 const API = "https://www.googleapis.com/drive/v3";
@@ -186,7 +186,7 @@ export const sync = async (api, root) => {
     if (prev !== dir && fs.existsSync(target)) {
       const other = readJson(path.join(target, MANIFEST));
       if (!other || other.folder !== folder.id) {
-        console.warn(`⚠ « ${folder.name} » : le dossier ${dir} existe déjà dans le repo, projet ignoré.`);
+        warn(`« ${folder.name} » : le dossier ${dir} existe déjà dans le repo, projet ignoré.`);
         continue;
       }
     }
@@ -261,6 +261,9 @@ export const sync = async (api, root) => {
     }
     // Les couvertures peuvent être désignées par le nom d'origine (IMG_1.HEIC).
     if (writeIfChanged(path.join(target, "projet.json"), JSON.stringify(meta, null, 2) + "\n")) log.projects.add(dir);
+
+    if (live.size && !Object.keys(man.files).length)
+      warn(`« ${folder.name} » : ${live.size} photo(s) sur le Drive mais aucune n'a pu être importée.`);
 
     // Couleurs automatiques d'après les photos (utilisées si aucune n'est imposée).
     if (await moodOf(target)) log.projects.add(dir);
