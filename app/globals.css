@@ -68,13 +68,3 @@ body {
 .ul[aria-pressed="true"] {
   background-size: 100% 1px;
 }
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}

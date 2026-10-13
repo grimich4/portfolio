@@ -21,11 +21,13 @@ code.
 - `app/page.tsx` — accueil : une couverture plein écran par projet.
 - `app/projets/[slug]/page.tsx` — page projet (statique).
 - `components/Cover.tsx` — couverture paysage (écran large) / portrait (écran en hauteur).
-- `components/usePager.ts` — défilement « un geste = une étape », partagé : smooth scroll natif
-  (molette, clavier, flèches), suivi du doigt + ease-out (tactile). Ne pas animer
-  scrollTo image par image en JS sur ordi : ça saccade.
-- `components/Pager.tsx` — accueil : une étape par projet, flèches.
-- `components/Gallery.tsx` — vues « Grand » (une photo centrée par geste) et « Mosaïque », retour.
+- `components/useTrack.ts` — « un geste = une étape » : la page ne défile pas, le contenu
+  glisse (`transform` + transition CSS, sous-pixel, carte graphique). Enchaînement en vol
+  à vitesse continue, suivi du doigt + élan. **Ne pas revenir à scrollTo** (saccades en
+  fin de ralenti, et le smooth scroll natif est coupé par Windows « effets d'animation »).
+- `components/Pager.tsx` — accueil : conteneur fixe + piste qui glisse, une étape par projet, flèches.
+- `components/ProjectView.tsx` — page projet : vue « Grand » (piste, une photo centrée par
+  geste) et « Mosaïque » (défilement normal), barre fixe, retour, projet suivant.
 - `components/Img.tsx` — wrapper next/image avec fondu.
 - `components/Theme.tsx` / `Sync.tsx` — couleurs `--bg` / `--fg`.
 - `.github/workflows/photos.yml` + `scripts/photos.mjs` — optimisation auto des photos envoyées sur GitHub.
@@ -41,6 +43,8 @@ code.
 - **Sobre** : pas de zoom ni d'effet au survol des images.
 - **Léger** : tout est statique ; composants client seulement si nécessaire.
   Pas de librairie d'animation.
+- **Mouvement toujours présent** : ne pas couper les transitions avec
+  `prefers-reduced-motion` (beaucoup de Windows l'activent par défaut → site figé).
 - **Images** : toujours un parent qui fixe l'aspect-ratio (pas de layout
   shift), un `sizes` correct, et `preload` seulement pour la première visible.
 - Typo : `font-serif` (Instrument Serif) pour les titres, `.cap` pour les
