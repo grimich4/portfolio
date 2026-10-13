@@ -25,8 +25,9 @@ type Opts = {
 };
 
 const GAP = 160; // ms sans molette = nouveau geste
-const DUR = 1000; // ms, molette / clavier / flèches
-const IN_OUT: [number, number, number, number] = [0.65, 0, 0.35, 1];
+const DUR = 950; // ms, molette / clavier / flèches
+// Départ franc (pente initiale ~0,4) puis long atterrissage en douceur.
+const IN_OUT: [number, number, number, number] = [0.25, 0.1, 0.1, 1];
 const OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 export function useTrack({ track, enabled = true, stops, start }: Opts) {
@@ -50,7 +51,7 @@ export function useTrack({ track, enabled = true, stops, start }: Opts) {
     const publish = () => {
       cancelAnimationFrame(pub);
       pub = requestAnimationFrame(() => {
-        box.scrollTop = 0; // une ancre (#projet) a pu faire défiler le conteneur
+        box.scrollTo(0, 0); // une ancre (#projet) a pu faire défiler le conteneur
         setCount(list.length);
         setIdx(tgt);
       });
@@ -132,7 +133,7 @@ export function useTrack({ track, enabled = true, stops, start }: Opts) {
     go.current = (i) => target(i);
 
     // ---- Départ ----
-    box.scrollTop = 0;
+    box.scrollTo(0, 0);
     measure();
     tgt = Math.max(0, Math.min(list.length - 1, start?.() ?? 0));
     publish();
@@ -221,7 +222,7 @@ export function useTrack({ track, enabled = true, stops, start }: Opts) {
 
     // Le focus clavier ne doit pas faire défiler le conteneur fixe.
     const onBoxScroll = () => {
-      if (box.scrollTop) box.scrollTop = 0;
+      if (box.scrollTop) box.scrollTo(0, 0);
     };
 
     // Taille de fenêtre : on remesure et on se recale, sans animation.
