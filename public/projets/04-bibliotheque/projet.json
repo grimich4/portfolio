@@ -1,0 +1,10 @@
+{
+  "titre": "Bibliotheque",
+  "lieu": "Paris",
+  "annee": "2026",
+  "texte": "Photoshoot du 13eme",
+  "couverture": {
+    "ordi": "000005490023.jpg",
+    "telephone": "000005490037.jpg"
+  }
+}
