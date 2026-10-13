@@ -13,7 +13,25 @@ import { imageSize } from "image-size";
  * Voir AJOUTER-UN-PROJET.md pour le format de projet.json.
  */
 
-export type Photo = { src: string; w: number; h: number; alt: string };
+export type Photo = {
+  src: string;
+  w: number;
+  h: number;
+  alt: string;
+  // Variantes WebP pré-calculées (scripts/variants.mjs) : base des fichiers
+  // /_img/<dossier>/<nom>-<largeur>.webp, largeurs disponibles, aperçu flou.
+  v?: { base: string; widths: number[]; blur: string };
+};
+
+// Manifeste écrit par scripts/variants.mjs avant le build (absent en dev).
+type Variant = { w: number; h: number; widths: number[]; blur: string; name: string };
+const variants: Record<string, Variant> = (() => {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(process.cwd(), "public", "_img", "manifest.json"), "utf8"));
+  } catch {
+    return {};
+  }
+})();
 
 export type Project = {
   slug: string;
@@ -61,11 +79,15 @@ const read = (dir: string, file: string, alt: string): Photo | null => {
     if (!d.width || !d.height) return null;
     // Photo encore brute (pas passée par l'optimisation) : on respecte l'EXIF.
     const turn = d.orientation && d.orientation >= 5;
+    const v = variants[`${dir}/${file}`];
     return {
       src: `/projets/${encodeURIComponent(dir)}/${encodeURIComponent(file)}`,
-      w: turn ? d.height : d.width,
-      h: turn ? d.width : d.height,
+      w: v?.w ?? (turn ? d.height : d.width),
+      h: v?.h ?? (turn ? d.width : d.height),
       alt,
+      ...(v && {
+        v: { base: `/_img/${encodeURIComponent(dir)}/${encodeURIComponent(v.name)}`, widths: v.widths, blur: v.blur },
+      }),
     };
   } catch {
     return null;

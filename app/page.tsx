@@ -31,7 +31,7 @@ export default function Home() {
             className="relative block flex-1 overflow-hidden"
             style={{ background: `color-mix(in srgb, ${p.colors.fg} 8%, ${p.colors.bg})` }}
           >
-            <Cover p={p} first={i === 0} />
+            <Cover p={p} first={i === 0} eager={i <= 2} />
             <div className="absolute bottom-0 left-0 max-w-[88%] bg-bg pr-5 pt-3 text-fg transition-colors duration-700 md:max-w-[70%] md:pr-10 md:pt-5">
               <p className="cap mb-2 opacity-60 md:mb-3">
                 {[pad(i + 1), p.place, p.year].filter(Boolean).join(" · ")}

@@ -5,7 +5,7 @@ depuis `main`. Chaque PR obtient une preview Vercel.
 
 ## Commandes
 - `npm run dev` — serveur local
-- `npm run build` — doit passer avant toute PR
+- `npm run build` — doit passer avant toute PR (lance d'abord `scripts/variants.mjs`)
 - `npm run lint`
 - `node scripts/photos.mjs` — optimise les photos (lancé aussi par GitHub Actions)
 - `node scripts/drive.mjs` — synchro Google Drive (besoin de GDRIVE_KEY / GDRIVE_FOLDER)
@@ -28,7 +28,11 @@ code.
 - `components/Pager.tsx` — accueil : conteneur fixe + piste qui glisse, une étape par projet, flèches.
 - `components/ProjectView.tsx` — page projet : vue « Grand » (piste, colonne fixe titre + compteur sur ordi, une photo centrée par
   geste) et « Mosaïque » (défilement normal), barre fixe, retour, projet suivant.
-- `components/Img.tsx` — wrapper next/image avec fondu.
+- `scripts/variants.mjs` (prebuild) — variantes WebP 480→2400 px pré-calculées + aperçu flou,
+  nom avec empreinte, budget de poids par pixel ; cache dans `.next/cache/variants`.
+  `public/_img/` est généré (gitignore).
+- `components/variant.ts` — loader next/image vers ces variantes (aucune transformation Vercel).
+- `components/Img.tsx` — wrapper next/image : aperçu flou instantané, `eager` pour les voisines.
 - `components/Theme.tsx` / `Sync.tsx` — couleurs `--bg` / `--fg`.
 - `.github/workflows/photos.yml` + `scripts/photos.mjs` — optimisation auto des photos envoyées sur GitHub.
 - `.github/workflows/drive.yml` + `scripts/drive.mjs` — synchro horaire du dossier Drive « Site » ;
@@ -46,7 +50,8 @@ code.
 - **Mouvement toujours présent** : ne pas couper les transitions avec
   `prefers-reduced-motion` (beaucoup de Windows l'activent par défaut → site figé).
 - **Images** : toujours un parent qui fixe l'aspect-ratio (pas de layout
-  shift), un `sizes` correct, et `preload` seulement pour la première visible.
+  shift), un `sizes` égal à la largeur réellement affichée, `preload` seulement
+  pour la première visible, et passer par `loaderFor` (variantes pré-calculées).
 - Typo : `font-serif` (Instrument Serif) pour les titres, `.cap` pour les
   légendes. Textes en français.
 - Mobile d'abord : tester à 375 px de large.

@@ -52,7 +52,7 @@ body {
 /* Fondu d'apparition des images une fois chargées. */
 .fade {
   opacity: 0;
-  transition: opacity 0.9s var(--ease);
+  transition: opacity 0.45s var(--ease);
 }
 .fade[data-ok="1"] {
   opacity: 1;

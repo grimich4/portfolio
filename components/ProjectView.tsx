@@ -147,7 +147,10 @@ export default function ProjectView({ p, nx }: { p: Project; nx: Next }) {
                         <Img
                           p={ph}
                           preload={i === 0}
-                          sizes={r >= 1 ? "(max-width: 768px) 100vw, 92vw" : "(max-width: 768px) 100vw, 60vw"}
+                          eager={Math.abs(i - (cur - 1)) <= 2}
+                          // Largeur réellement affichée : limitée par la hauteur
+                          // d'écran pour les verticales, par la colonne sur ordi.
+                          sizes={`(min-width: 768px) min(calc(100vw - 340px), calc((100vh - 8rem) * ${r.toFixed(3)})), min(100vw, calc((100vh - 8rem) * ${r.toFixed(3)}))`}
                         />
                       </div>
                       <figcaption className="cap mt-3 opacity-50 md:hidden">
