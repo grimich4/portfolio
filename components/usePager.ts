@@ -6,14 +6,16 @@ import { useEffect, useRef, useState } from "react";
  * Défilement « un geste = une étape » (accueil : un projet, page projet :
  * une photo). Partagé par Pager et Gallery.
  *
- * - Molette / trackpad / clavier : glissé en ease-in-out (1 s). Un nouveau
- *   geste pendant le mouvement repart de la position et de la vitesse
- *   actuelles vers l'étape suivante : pas d'arrêt, pas d'à-coup.
- * - Tactile : la page suit le doigt puis se pose en douceur (ease-out).
+ * - Molette / trackpad / clavier / flèches : défilement fluide NATIF du
+ *   navigateur (scrollTo smooth). Il est calculé hors du fil JavaScript,
+ *   donc sans saccade, et un nouveau geste en cours de route est enchaîné
+ *   par le navigateur lui-même.
+ * - Tactile : la page suit le doigt, puis se pose en douceur (ease-out).
  * - L'inertie du trackpad ne compte que pour une étape ; une relance nette
  *   pendant l'inertie compte comme un nouveau geste.
- * - Les positions des étapes sont mesurées au début d'un geste, jamais
- *   pendant l'animation (pas de recalcul de mise en page à chaque image).
+ * - Positions mesurées au début d'un geste, jamais pendant le mouvement.
+ * - Le mouvement est conservé même si le système demande de réduire les
+ *   animations (sinon la page « saute » d'un projet à l'autre).
  */
 
 type Opts = {
@@ -24,14 +26,7 @@ type Opts = {
 };
 
 const GAP = 160; // ms sans molette = nouveau geste
-const DUR = 1; // s, molette / clavier / flèches
-
-const inOut = (s: number) => (s < 0.5 ? 4 * s * s * s : 1 - (-2 * s + 2) ** 3 / 2);
-const dInOut = (s: number) => (s < 0.5 ? 12 * s * s : 12 * (1 - s) ** 2);
 const out = (s: number) => 1 - (1 - s) ** 4;
-const dOut = (s: number) => 4 * (1 - s) ** 3;
-
-const still = () => typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 export const maxScroll = () => document.documentElement.scrollHeight - innerHeight;
 
@@ -58,69 +53,35 @@ export function usePager({ enabled = true, stops }: Opts) {
       return best;
     };
 
-    // Animation en cours : position = p0 + (p1-p0)·f(s) + v0·D·g(s), où
-    // g(s) = s(1-s)² raccorde la vitesse de départ v0 (px/s) sans à-coup.
-    type Anim = { p0: number; p1: number; v0: number; t0: number; D: number; f: typeof inOut; df: typeof inOut };
-    let anim: Anim | null = null;
-    let raf = 0, tgt = 0;
-
-    const at = (a: Anim, now: number) => {
-      const s = Math.min(1, (now - a.t0) / 1000 / a.D);
-      const g = s * (1 - s) ** 2;
-      const dg = (1 - s) * (1 - 3 * s);
-      return {
-        s,
-        p: a.p0 + (a.p1 - a.p0) * a.f(s) + a.v0 * a.D * g,
-        v: ((a.p1 - a.p0) * a.df(s)) / a.D + a.v0 * dg,
-      };
+    // « En mouvement » tant que la page n'est pas arrivée sur l'étape visée.
+    let tgt = 0, moving = false, raf = 0, settle: ReturnType<typeof setTimeout>;
+    const arrived = () => {
+      moving = false;
+      clearTimeout(settle);
+    };
+    const watch = () => {
+      clearTimeout(settle);
+      settle = setTimeout(arrived, 1400); // filet si scrollend n'arrive pas
     };
 
-    const frame = (now: number) => {
-      if (!anim) return;
-      const { s, p } = at(anim, now);
-      scrollTo(0, s >= 1 ? anim.p1 : p);
-      if (s >= 1) anim = null;
-      else raf = requestAnimationFrame(frame);
-    };
-
-    const stop = () => {
-      cancelAnimationFrame(raf);
-      anim = null;
-    };
-
-    const target = (i: number, opt: { touch?: boolean } = {}) => {
+    const target = (i: number) => {
       if (!list.length) measure();
       tgt = Math.max(0, Math.min(list.length - 1, i));
       setIdx(tgt);
-      const p1 = list[tgt];
-      const now = performance.now();
-      if (still()) {
-        stop();
-        scrollTo(0, p1);
-        return;
-      }
-      // Repart de l'état actuel : position et vitesse si on est en mouvement.
-      const cur = anim ? at(anim, now) : { p: scrollY, v: 0 };
       cancelAnimationFrame(raf);
-      const dist = Math.abs(p1 - cur.p) / innerHeight;
-      anim = opt.touch
-        ? { p0: cur.p, p1, v0: 0, t0: now, D: 0.42 + 0.48 * Math.min(1, dist), f: out, df: dOut }
-        : { p0: cur.p, p1, v0: cur.v, t0: now, D: DUR, f: inOut, df: dInOut };
-      if (Math.abs(p1 - cur.p) < 1 && Math.abs(cur.v) < 1) {
-        anim = null;
-        scrollTo(0, p1);
-        return;
-      }
-      raf = requestAnimationFrame(frame);
+      if (Math.abs(list[tgt] - scrollY) < 1) return arrived();
+      moving = true;
+      watch();
+      scrollTo({ top: list[tgt], behavior: "smooth" });
     };
 
     const base = () => {
-      if (anim) return tgt;
+      if (moving) return tgt; // geste pendant le mouvement : on enchaîne
       measure();
       return nearest(scrollY);
     };
     go.current = (i) => {
-      if (!anim) measure();
+      if (!moving) measure();
       target(i);
     };
 
@@ -158,15 +119,18 @@ export function usePager({ enabled = true, stops }: Opts) {
       e.preventDefault();
     };
 
-    // ---- Tactile ----
+    // ---- Tactile : suivi du doigt puis atterrissage ease-out ----
     let drag = false, y0 = 0, s0 = 0, t0 = 0, from = 0;
     const onStart = (e: TouchEvent) => {
       if (e.touches.length > 1) {
         drag = false;
         return;
       }
-      from = anim ? tgt : (measure(), nearest(scrollY)); // rattrapée en vol : on enchaîne
-      stop();
+      from = moving ? tgt : (measure(), nearest(scrollY));
+      cancelAnimationFrame(raf);
+      // Fige un éventuel défilement en cours là où il est.
+      if (moving) scrollTo({ top: scrollY, behavior: "instant" as ScrollBehavior });
+      arrived();
       drag = true;
       y0 = e.touches[0].clientY;
       s0 = scrollY;
@@ -175,7 +139,7 @@ export function usePager({ enabled = true, stops }: Opts) {
     const onMove = (e: TouchEvent) => {
       if (!drag || e.touches.length > 1) return;
       e.preventDefault();
-      scrollTo(0, s0 + (y0 - e.touches[0].clientY));
+      scrollTo({ top: s0 + (y0 - e.touches[0].clientY), behavior: "instant" as ScrollBehavior });
     };
     const onEnd = (e: TouchEvent) => {
       if (!drag) return;
@@ -184,13 +148,32 @@ export function usePager({ enabled = true, stops }: Opts) {
       if (Math.abs(dy) < 4) return; // simple tap : le lien s'ouvre
       const v = dy / Math.max(1, performance.now() - t0); // px/ms
       const flick = Math.abs(dy) > innerHeight * 0.18 || (Math.abs(dy) > 12 && Math.abs(v) > 0.3);
-      target(from + (flick ? Math.sign(dy) : 0), { touch: true });
+      if (!list.length) measure();
+      tgt = Math.max(0, Math.min(list.length - 1, from + (flick ? Math.sign(dy) : 0)));
+      setIdx(tgt);
+      const p0 = scrollY, p1 = list[tgt];
+      const D = 420 + 480 * Math.min(1, Math.abs(p1 - p0) / innerHeight);
+      const start = performance.now();
+      moving = true;
+      watch();
+      const step = (now: number) => {
+        const s = Math.min(1, (now - start) / D);
+        scrollTo({ top: p0 + (p1 - p0) * out(s), behavior: "instant" as ScrollBehavior });
+        if (s < 1) raf = requestAnimationFrame(step);
+        else arrived();
+      };
+      raf = requestAnimationFrame(step);
     };
 
-    // ---- Suivi de l'étape quand on défile autrement (barre, ancre) ----
+    // ---- Fin de mouvement / suivi de l'étape ----
+    const onScrollEnd = () => {
+      if (drag) return;
+      if (moving && Math.abs(scrollY - (list[tgt] ?? scrollY)) <= 2) arrived();
+      if (!moving) setIdx(nearest(scrollY));
+    };
     let tick = 0;
     const onScroll = () => {
-      if (anim || drag) return;
+      if (moving || drag) return;
       cancelAnimationFrame(tick);
       tick = requestAnimationFrame(() => {
         if (!list.length) measure();
@@ -206,10 +189,10 @@ export function usePager({ enabled = true, stops }: Opts) {
       wd = innerWidth;
       clearTimeout(rt);
       rt = setTimeout(() => {
-        const i = anim ? tgt : nearest(scrollY);
-        stop();
+        const i = moving ? tgt : nearest(scrollY);
         measure();
-        scrollTo(0, list[Math.min(i, list.length - 1)] ?? 0);
+        arrived();
+        scrollTo({ top: list[Math.min(i, list.length - 1)] ?? 0, behavior: "instant" as ScrollBehavior });
       }, 150);
     };
 
@@ -225,10 +208,12 @@ export function usePager({ enabled = true, stops }: Opts) {
     addEventListener("touchend", onEnd);
     addEventListener("touchcancel", onEnd);
     addEventListener("scroll", onScroll, { passive: true });
+    addEventListener("scrollend", onScrollEnd);
     addEventListener("resize", onResize);
     return () => {
-      stop();
+      cancelAnimationFrame(raf);
       cancelAnimationFrame(tick);
+      clearTimeout(settle);
       clearTimeout(rt);
       removeEventListener("wheel", onWheel);
       removeEventListener("keydown", onKey);
@@ -237,9 +222,10 @@ export function usePager({ enabled = true, stops }: Opts) {
       removeEventListener("touchend", onEnd);
       removeEventListener("touchcancel", onEnd);
       removeEventListener("scroll", onScroll);
+      removeEventListener("scrollend", onScrollEnd);
       removeEventListener("resize", onResize);
     };
-  }, [enabled, stops]); // stops : fonction stable (définie hors composant)
+  }, [enabled, stops]);
 
   return { idx, count, go: (i: number) => go.current(i) };
 }

@@ -21,7 +21,9 @@ code.
 - `app/page.tsx` — accueil : une couverture plein écran par projet.
 - `app/projets/[slug]/page.tsx` — page projet (statique).
 - `components/Cover.tsx` — couverture paysage (écran large) / portrait (écran en hauteur).
-- `components/usePager.ts` — défilement « un geste = une étape » (molette, clavier, tactile), partagé.
+- `components/usePager.ts` — défilement « un geste = une étape », partagé : smooth scroll natif
+  (molette, clavier, flèches), suivi du doigt + ease-out (tactile). Ne pas animer
+  scrollTo image par image en JS sur ordi : ça saccade.
 - `components/Pager.tsx` — accueil : une étape par projet, flèches.
 - `components/Gallery.tsx` — vues « Grand » (une photo centrée par geste) et « Mosaïque », retour.
 - `components/Img.tsx` — wrapper next/image avec fondu.
