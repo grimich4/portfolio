@@ -1,20 +1,36 @@
 "use client";
 
+import { useRef } from "react";
 import Arrow from "@/components/Arrow";
-import { usePager } from "@/components/usePager";
+import { useTrack } from "@/components/useTrack";
 
-// Accueil : une étape par projet (+ le pied de page), flèches haut/bas.
-const stops = () =>
-  Array.from(document.querySelectorAll<HTMLElement>("[data-page]")).map((el) => el.offsetTop);
+// Accueil : le contenu glisse d'un projet à l'autre (une étape par
+// [data-page]), dans un conteneur fixe plein écran.
+const stops = (track: HTMLElement) =>
+  Array.from(track.querySelectorAll<HTMLElement>("[data-page]")).map((el) => el.offsetTop);
 
-export default function Pager() {
-  const { idx, count, go } = usePager({ stops });
+// Arrivée depuis « ← Projets » : on se place directement sur le projet (#slug).
+const start = () => {
+  const id = decodeURIComponent(location.hash.slice(1));
+  if (!id) return 0;
+  const all = Array.from(document.querySelectorAll<HTMLElement>("[data-page]"));
+  return Math.max(0, all.findIndex((el) => el.id === id));
+};
+
+export default function Pager({ children }: { children: React.ReactNode }) {
+  const track = useRef<HTMLDivElement>(null);
+  const { idx, count, go } = useTrack({ track, stops, start });
 
   const tab = "fixed right-3 z-30 bg-bg text-fg transition-[opacity,background-color,color] duration-700 md:right-8";
   const hid = "pointer-events-none opacity-0";
 
   return (
     <>
+      <div className="fixed inset-0 overflow-hidden">
+        <div ref={track} data-track className="will-change-transform">
+          {children}
+        </div>
+      </div>
       <button
         onClick={() => go(idx - 1)}
         aria-label="Projet précédent"

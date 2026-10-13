@@ -12,10 +12,10 @@ export default function Home() {
 
   return (
     <main>
-      <Theme bg={first.bg} fg={first.fg} extra="html{overscroll-behavior-y:none}" />
+      <Theme bg={first.bg} fg={first.fg} extra="html,body{overflow:hidden;overscroll-behavior:none}" />
       <Sync />
-      <Pager />
       <h1 className="sr-only">Gaspard David — projets photographiques</h1>
+      <Pager>
 
       {projects.map((p, i) => (
         <section
@@ -48,6 +48,7 @@ export default function Home() {
         <span className="cap opacity-50">© {new Date().getFullYear()} Gaspard David</span>
         <span className="cap opacity-50">{pad(projects.length)} projets</span>
       </footer>
+      </Pager>
     </main>
   );
 }
