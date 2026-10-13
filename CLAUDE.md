@@ -26,7 +26,7 @@ code.
   à vitesse continue, suivi du doigt + élan. **Ne pas revenir à scrollTo** (saccades en
   fin de ralenti, et le smooth scroll natif est coupé par Windows « effets d'animation »).
 - `components/Pager.tsx` — accueil : conteneur fixe + piste qui glisse, une étape par projet, flèches.
-- `components/ProjectView.tsx` — page projet : vue « Grand » (piste, une photo centrée par
+- `components/ProjectView.tsx` — page projet : vue « Grand » (piste, colonne fixe titre + compteur sur ordi, une photo centrée par
   geste) et « Mosaïque » (défilement normal), barre fixe, retour, projet suivant.
 - `components/Img.tsx` — wrapper next/image avec fondu.
 - `components/Theme.tsx` / `Sync.tsx` — couleurs `--bg` / `--fg`.
@@ -34,7 +34,7 @@ code.
 - `.github/workflows/drive.yml` + `scripts/drive.mjs` — synchro horaire du dossier Drive « Site » ;
   les projets synchronisés ont un `.drive.json` (ne pas éditer à la main, ils seraient écrasés).
 - `scripts/optim.mjs` — optimisation partagée (HEIC → JPEG, 3000 px, sans EXIF).
-- `scripts/mood.mjs` — couleurs automatiques d'après les photos → `.mood.json`
+- `scripts/mood.mjs` — couleurs automatiques (OKLCH : chaud → papier + encre, froid → fond profond + crème) → `.mood.json`
   (utilisé si projet.json ne fixe pas `couleurs`). `node scripts/mood.mjs` pour tout recalculer.
 
 ## Principes (à respecter)

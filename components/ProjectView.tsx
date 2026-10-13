@@ -20,8 +20,9 @@ const stops = (track: HTMLElement) => {
   const t0 = track.getBoundingClientRect().top;
   const h = topBars();
   const mid = h + (innerHeight - h) / 2;
+  const intro = track.querySelector<HTMLElement>("[data-intro]");
   return [
-    0,
+    ...(intro && intro.offsetHeight ? [0] : []),
     ...Array.from(track.querySelectorAll<HTMLElement>("[data-shot]")).map((el) => {
       const r = el.getBoundingClientRect();
       return r.top - t0 + r.height / 2 - mid;
@@ -38,7 +39,10 @@ export default function ProjectView({ p, nx }: { p: Project; nx: Next }) {
   const n = p.photos.length;
 
   // Une photo par geste en vue « Grand » ; défilement libre en mosaïque.
-  useTrack({ track, enabled: mode === "grand", stops, start });
+  const { idx, count } = useTrack({ track, enabled: mode === "grand", stops, start });
+  // Numéro de la photo affichée (les étapes comptent aussi l'intro mobile et la fin).
+  const first = count ? count - n - 1 : 0;
+  const cur = Math.max(1, Math.min(n, idx - first + 1));
 
   const pick = (m: Mode) => {
     if (m === mode) return;
@@ -53,7 +57,7 @@ export default function ProjectView({ p, nx }: { p: Project; nx: Next }) {
   };
 
   const intro = (
-    <header className="px-4 pb-10 pt-[calc(6.25rem+env(safe-area-inset-top)+12vh)] md:px-8 md:pb-16">
+    <header data-intro className="px-4 pb-10 pt-[calc(6.25rem+env(safe-area-inset-top)+12vh)] md:px-8 md:pb-16">
       <p className="cap mb-5 opacity-50">
         {[p.place, p.year, `${pad(n)} photos`].filter(Boolean).join(" · ")}
       </p>
@@ -104,11 +108,32 @@ export default function ProjectView({ p, nx }: { p: Project; nx: Next }) {
         <>
           {/* La page ne défile pas : c'est le contenu qui glisse. */}
           <style>{"html,body{overflow:hidden;overscroll-behavior:none}"}</style>
+          {/* Ordi : colonne fixe — titre dès l'arrivée, compteur, progression. */}
+          <aside className="pointer-events-none fixed bottom-8 left-8 top-[calc(6.25rem+env(safe-area-inset-top)+6vh)] z-20 hidden w-[clamp(200px,19vw,300px)] flex-col justify-between md:flex">
+            <div>
+              <p className="cap mb-4 opacity-50">{[p.place, p.year].filter(Boolean).join(" · ")}</p>
+              <h1 className="font-serif text-[clamp(40px,4.2vw,76px)] leading-[0.92] tracking-[-0.015em]">{p.title}</h1>
+              {p.text && <p className="mt-5 text-[14px] leading-relaxed opacity-70">{p.text}</p>}
+            </div>
+            <div>
+              <p className="flex items-baseline gap-3">
+                <span className="font-serif text-[clamp(56px,5.5vw,96px)] leading-none tabular-nums">{pad(cur)}</span>
+                <span className="cap opacity-50">/ {pad(n)}</span>
+              </p>
+              <div className="mt-4 h-px w-full bg-current/15">
+                <div
+                  className="h-px bg-current transition-[width] duration-700 ease-[var(--ease)]"
+                  style={{ width: `${(cur / n) * 100}%` }}
+                />
+              </div>
+            </div>
+          </aside>
           <div className="fixed inset-0 overflow-hidden">
             <div ref={track} data-track className="will-change-transform">
-              {intro}
-              {/* Grand écart : une seule photo visible à la fois. */}
-              <div className="flex flex-col gap-[34svh] px-3 pb-[30svh] pt-[12svh] md:gap-[16svh] md:px-8">
+              <div className="md:hidden">{intro}</div>
+              {/* Grand écart : une seule photo visible à la fois. Sur ordi, les
+                  photos sont centrées à droite de la colonne d'informations. */}
+              <div className="flex flex-col gap-[34svh] px-3 pb-[30svh] pt-[12svh] md:gap-[16svh] md:pl-[clamp(260px,24vw,380px)] md:pr-8 md:pt-[30svh]">
                 {p.photos.map((ph, i) => {
                   const r = ph.w / ph.h;
                   return (
@@ -116,7 +141,7 @@ export default function ProjectView({ p, nx }: { p: Project; nx: Next }) {
                       key={i}
                       data-shot
                       className="mx-auto"
-                      style={{ width: `min(100%, calc((100svh - 8.5rem) * ${r.toFixed(4)}))` }}
+                      style={{ width: `min(100%, calc((100svh - 8rem) * ${r.toFixed(4)}))` }}
                     >
                       <div className="tint relative" style={{ aspectRatio: `${ph.w} / ${ph.h}` }}>
                         <Img
@@ -125,7 +150,7 @@ export default function ProjectView({ p, nx }: { p: Project; nx: Next }) {
                           sizes={r >= 1 ? "(max-width: 768px) 100vw, 92vw" : "(max-width: 768px) 100vw, 60vw"}
                         />
                       </div>
-                      <figcaption className="cap mt-3 opacity-50">
+                      <figcaption className="cap mt-3 opacity-50 md:hidden">
                         {pad(i + 1)} / {pad(n)}
                       </figcaption>
                     </figure>
