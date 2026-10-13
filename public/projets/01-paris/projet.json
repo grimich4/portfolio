@@ -1,9 +1,0 @@
-{
-  "titre": "Paris",
-  "lieu": "Paris",
-  "annee": "2025",
-  "texte": "Rues, passages et lumières de la ville.",
-  "couleurs": ["#0b0b0b", "#f3f1ec"],
-  "couverture": { "ordi": "paris-01.jpg" },
-  "exemples": 9
-}
