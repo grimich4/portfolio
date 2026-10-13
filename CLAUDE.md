@@ -29,6 +29,8 @@ code.
 - `.github/workflows/drive.yml` + `scripts/drive.mjs` — synchro horaire du dossier Drive « Site » ;
   les projets synchronisés ont un `.drive.json` (ne pas éditer à la main, ils seraient écrasés).
 - `scripts/optim.mjs` — optimisation partagée (HEIC → JPEG, 3000 px, sans EXIF).
+- `scripts/mood.mjs` — couleurs automatiques d'après les photos → `.mood.json`
+  (utilisé si projet.json ne fixe pas `couleurs`). `node scripts/mood.mjs` pour tout recalculer.
 
 ## Principes (à respecter)
 - **Bicolore** : seulement `--bg` et `--fg` (classes `bg-bg`, `text-fg`,
