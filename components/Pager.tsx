@@ -4,16 +4,17 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Arrow from "@/components/Arrow";
 
 /*
- * Accueil : un geste de défilement = un projet.
- * - Souris / trackpad / clavier : animation maison (easing doux), un geste
- *   continu (inertie du trackpad comprise) ne fait avancer que d'un projet.
- * - Écrans tactiles : scroll-snap natif (glisser = un projet).
- * Cibles : tous les éléments [data-page] dans l'ordre du document.
+ * Accueil : un geste = un projet.
+ * - Molette / trackpad / clavier : glissé animé, un geste continu
+ *   (inertie du trackpad comprise) n'avance que d'un projet.
+ * - Tactile : la page suit le doigt, puis termine le mouvement en douceur
+ *   vers le projet suivant, précédent, ou revient au projet courant.
+ * Cibles : les éléments [data-page], dans l'ordre du document.
  */
 
-const DUR = 1000;
-const GAP = 180; // ms sans événement molette = nouveau geste
-const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const GAP = 180; // ms sans molette = nouveau geste
+const inOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const out = (t: number) => 1 - Math.pow(1 - t, 4);
 
 const tops = () =>
   Array.from(document.querySelectorAll<HTMLElement>("[data-page]")).map((el) =>
@@ -29,28 +30,36 @@ const near = () => {
   return best;
 };
 
+const still = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+
 // n = nombre de cibles [data-page] (projets + pied de page).
 export default function Pager({ n }: { n: number }) {
   const [idx, setIdx] = useState(0);
   const busy = useRef(false);
+  const run = useRef(0); // identifiant de l'animation en cours
 
-  const go = useCallback((i: number) => {
+  const go = useCallback((i: number, opt: { touch?: boolean } = {}) => {
     const t = tops();
     if (!t.length) return;
     i = Math.max(0, Math.min(t.length - 1, i));
+    setIdx(i);
     const to = t[i];
     const from = scrollY;
-    setIdx(i);
-    const touch = matchMedia("(pointer: coarse)").matches;
-    const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (touch || still) {
-      scrollTo({ top: to, behavior: still ? "auto" : "smooth" });
+    const id = ++run.current;
+    if (still() || from === to) {
+      scrollTo(0, to);
+      busy.current = false;
       return;
     }
+    // Tactile : durée selon la distance restante, départ rapide (suite du doigt).
+    const dist = Math.abs(to - from) / innerHeight;
+    const dur = opt.touch ? 420 + 480 * Math.min(1, dist) : 1000;
+    const ease = opt.touch ? out : inOut;
     busy.current = true;
     const t0 = performance.now();
     const step = (now: number) => {
-      const k = Math.min(1, (now - t0) / DUR);
+      if (id !== run.current) return; // interrompue
+      const k = Math.min(1, (now - t0) / dur);
       scrollTo(0, from + (to - from) * ease(k));
       if (k < 1) requestAnimationFrame(step);
       else busy.current = false;
@@ -59,9 +68,12 @@ export default function Pager({ n }: { n: number }) {
   }, []);
 
   useEffect(() => {
+    let raf = requestAnimationFrame(() => setIdx(near()));
+
+    // Molette / trackpad
     let last = 0;
     const onWheel = (e: WheelEvent) => {
-      if (e.ctrlKey || matchMedia("(pointer: coarse)").matches) return;
+      if (e.ctrlKey) return; // zoom
       e.preventDefault();
       const now = performance.now();
       const fresh = now - last > GAP;
@@ -70,6 +82,7 @@ export default function Pager({ n }: { n: number }) {
       go(near() + (e.deltaY > 0 ? 1 : -1));
     };
 
+    // Clavier
     const onKey = (e: KeyboardEvent) => {
       if (e.altKey || e.ctrlKey || e.metaKey) return;
       const tag = (e.target as HTMLElement)?.tagName;
@@ -86,28 +99,71 @@ export default function Pager({ n }: { n: number }) {
       }
     };
 
-    let raf = 0;
+    // Tactile
+    let y0 = 0, s0 = 0, t0 = 0, base = 0, drag = false;
+    const onStart = (e: TouchEvent) => {
+      if (e.touches.length > 1) {
+        drag = false;
+        return;
+      }
+      run.current++; // le doigt reprend la main sur une animation en cours
+      busy.current = false;
+      drag = true;
+      y0 = e.touches[0].clientY;
+      s0 = scrollY;
+      t0 = performance.now();
+      base = near();
+    };
+    const onMove = (e: TouchEvent) => {
+      if (!drag || e.touches.length > 1) return;
+      e.preventDefault();
+      scrollTo(0, s0 + (y0 - e.touches[0].clientY));
+    };
+    const onEnd = (e: TouchEvent) => {
+      if (!drag) return;
+      drag = false;
+      const dy = y0 - (e.changedTouches[0]?.clientY ?? y0);
+      if (Math.abs(dy) < 4) return; // simple tap : on laisse le lien s'ouvrir
+      const v = dy / Math.max(1, performance.now() - t0); // px/ms
+      const flick = Math.abs(dy) > innerHeight * 0.18 || (Math.abs(dy) > 12 && Math.abs(v) > 0.3);
+      go(base + (flick ? Math.sign(dy) : 0), { touch: true });
+    };
+
     const onScroll = () => {
-      if (busy.current) return;
+      if (busy.current || drag) return;
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => setIdx(near()));
     };
 
-    // Après redimensionnement, on se recale sur le projet courant.
+    // Changement de largeur (rotation, fenêtre) : on se recale.
+    // La barre d'adresse mobile ne change que la hauteur : ignorée.
+    let w = innerWidth;
     let rt: ReturnType<typeof setTimeout>;
     const onResize = () => {
+      if (innerWidth === w) return;
+      w = innerWidth;
       clearTimeout(rt);
       rt = setTimeout(() => scrollTo(0, tops()[near()] ?? 0), 120);
     };
 
-    raf = requestAnimationFrame(() => setIdx(near()));
-    addEventListener("wheel", onWheel, { passive: false });
+    const active = { passive: false } as const;
+    addEventListener("wheel", onWheel, active);
     addEventListener("keydown", onKey);
+    addEventListener("touchstart", onStart, { passive: true });
+    addEventListener("touchmove", onMove, active);
+    addEventListener("touchend", onEnd);
+    addEventListener("touchcancel", onEnd);
     addEventListener("scroll", onScroll, { passive: true });
     addEventListener("resize", onResize);
+    const r = run;
     return () => {
+      r.current++;
       removeEventListener("wheel", onWheel);
       removeEventListener("keydown", onKey);
+      removeEventListener("touchstart", onStart);
+      removeEventListener("touchmove", onMove);
+      removeEventListener("touchend", onEnd);
+      removeEventListener("touchcancel", onEnd);
       removeEventListener("scroll", onScroll);
       removeEventListener("resize", onResize);
       cancelAnimationFrame(raf);

@@ -1,9 +1,9 @@
 import Link from "next/link";
-import Img from "@/components/Img";
+import Cover from "@/components/Cover";
 import Pager from "@/components/Pager";
 import Sync from "@/components/Sync";
 import Theme from "@/components/Theme";
-import { coverOf, projects } from "@/data/projects";
+import { projects } from "@/lib/projects";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -12,7 +12,7 @@ export default function Home() {
 
   return (
     <main>
-      <Theme bg={first.bg} fg={first.fg} extra="@media (pointer:coarse){html{scroll-snap-type:y mandatory}}" />
+      <Theme bg={first.bg} fg={first.fg} extra="html{overscroll-behavior-y:none}" />
       <Sync />
       <Pager n={projects.length + 1} />
       <h1 className="sr-only">Gaspard David — projets photographiques</h1>
@@ -24,31 +24,24 @@ export default function Home() {
           data-page
           data-bg={p.colors.bg}
           data-fg={p.colors.fg}
-          className="flex h-svh snap-start snap-always flex-col px-3 pb-3 pt-[calc(3.5rem+env(safe-area-inset-top))] md:px-8 md:pb-8"
+          className="flex h-svh flex-col px-3 pb-3 pt-[calc(3.5rem+env(safe-area-inset-top))] md:px-8 md:pb-8"
         >
           <Link
             href={`/projets/${p.slug}`}
-            className="group relative block flex-1 overflow-hidden"
+            className="relative block flex-1 overflow-hidden"
             style={{ background: `color-mix(in srgb, ${p.colors.fg} 8%, ${p.colors.bg})` }}
           >
-            <Img
-              p={coverOf(p)}
-              sizes="100vw"
-              preload={i === 0}
-              className="transition-transform duration-[1800ms] ease-[var(--ease)] group-hover:scale-[1.025]"
-            />
+            <Cover p={p} first={i === 0} />
             <div className="absolute bottom-0 left-0 flex items-baseline gap-3 bg-bg pr-4 pt-2.5 text-fg transition-colors duration-700 md:gap-5 md:pr-7 md:pt-3.5">
               <span className="cap opacity-60">{pad(i + 1)}</span>
               <span className="font-serif text-[22px] leading-none md:text-[28px]">{p.title}</span>
-              <span className="cap opacity-60">
-                {p.place} · {p.year}
-              </span>
+              <span className="cap opacity-60">{[p.place, p.year].filter(Boolean).join(" · ")}</span>
             </div>
           </Link>
         </section>
       ))}
 
-      <footer data-page className="flex snap-end items-center justify-between px-4 pb-8 pt-4 md:px-8">
+      <footer data-page className="flex items-center justify-between px-4 pb-8 pt-4 md:px-8">
         <span className="cap opacity-50">© {new Date().getFullYear()} Gaspard David</span>
         <span className="cap opacity-50">{pad(projects.length)} projets</span>
       </footer>

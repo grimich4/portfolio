@@ -5,7 +5,7 @@ import { flushSync } from "react-dom";
 import Link from "next/link";
 import Arrow from "@/components/Arrow";
 import Img from "@/components/Img";
-import type { Photo } from "@/data/projects";
+import type { Photo } from "@/lib/projects";
 
 type Mode = "grand" | "mosaique";
 
@@ -84,13 +84,12 @@ export default function Gallery({ photos, slug }: { photos: Photo[]; slug: strin
               key={i}
               onClick={() => open(i)}
               aria-label={`Voir la photo ${i + 1} en grand`}
-              className="tint group relative mb-2 block w-full cursor-zoom-in overflow-hidden break-inside-avoid md:mb-3"
+              className="tint relative mb-2 block w-full cursor-zoom-in overflow-hidden break-inside-avoid md:mb-3"
               style={{ aspectRatio: `${p.w} / ${p.h}` }}
             >
               <Img
                 p={p}
                 sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
-                className="transition-transform duration-[1200ms] ease-[var(--ease)] group-hover:scale-[1.03]"
               />
             </button>
           ))}
