@@ -1,93 +1,57 @@
-"use client";
+import Link from "next/link";
+import Img from "@/components/Img";
+import Pager from "@/components/Pager";
+import Sync from "@/components/Sync";
+import Theme from "@/components/Theme";
+import { coverOf, projects } from "@/data/projects";
 
-import { useState, useEffect } from "react";
-import Image from "next/image";
-import { photos } from "../data/photos";
+const pad = (n: number) => String(n).padStart(2, "0");
 
 export default function Home() {
-  const [current, setCurrent] = useState<number | null>(null);
-
-  const close = () => setCurrent(null);
-  const prev = () =>
-    setCurrent((i) => (i !== null ? (i - 1 + photos.length) % photos.length : i));
-  const next = () =>
-    setCurrent((i) => (i !== null ? (i + 1) % photos.length : i));
-
-  // clavier
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (current === null) return;
-      if (e.key === "Escape") close();
-      if (e.key === "ArrowLeft") prev();
-      if (e.key === "ArrowRight") next();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [current]);
+  const first = projects[0].colors;
 
   return (
-    <section>
-      <h1 className="text-2xl font-bold mb-6">Portfolio</h1>
+    <main>
+      <Theme bg={first.bg} fg={first.fg} extra="@media (pointer:coarse){html{scroll-snap-type:y mandatory}}" />
+      <Sync />
+      <Pager n={projects.length + 1} />
+      <h1 className="sr-only">Gaspard David — projets photographiques</h1>
 
-      {/* Galerie */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {photos.map((photo, index) => (
-          <button
-            key={photo.id}
-            onClick={() => setCurrent(index)}
-            className="mb-4 break-inside-avoid overflow-hidden rounded focus:outline-none w-full inline-block"
+      {projects.map((p, i) => (
+        <section
+          key={p.slug}
+          id={p.slug}
+          data-page
+          data-bg={p.colors.bg}
+          data-fg={p.colors.fg}
+          className="flex h-svh snap-start snap-always flex-col px-3 pb-3 pt-[calc(3.5rem+env(safe-area-inset-top))] md:px-8 md:pb-8"
+        >
+          <Link
+            href={`/projets/${p.slug}`}
+            className="group relative block flex-1 overflow-hidden"
+            style={{ background: `color-mix(in srgb, ${p.colors.fg} 8%, ${p.colors.bg})` }}
           >
-            <Image
-              src={photo.src}
-              alt={photo.alt}
-              width={photo.width}
-              height={photo.height}
-              className="w-full h-auto hover:scale-105 transition-transform duration-300"
+            <Img
+              p={coverOf(p)}
+              sizes="100vw"
+              preload={i === 0}
+              className="transition-transform duration-[1800ms] ease-[var(--ease)] group-hover:scale-[1.025]"
             />
-          </button>
-        ))}
-      </div>
+            <div className="absolute bottom-0 left-0 flex items-baseline gap-3 bg-bg pr-4 pt-2.5 text-fg transition-colors duration-700 md:gap-5 md:pr-7 md:pt-3.5">
+              <span className="cap opacity-60">{pad(i + 1)}</span>
+              <span className="font-serif text-[22px] leading-none md:text-[28px]">{p.title}</span>
+              <span className="cap opacity-60">
+                {p.place} · {p.year}
+              </span>
+            </div>
+          </Link>
+        </section>
+      ))}
 
-      {/* Lightbox */}
-      {current !== null && (
-        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center">
-          {/* fermer */}
-          <button
-            onClick={close}
-            className="absolute top-4 right-4 text-white text-3xl"
-          >
-            ✕
-          </button>
-
-          {/* précédent */}
-          <button
-            onClick={prev}
-            className="absolute left-4 text-white text-4xl px-4"
-          >
-            ‹
-          </button>
-
-          {/* image */}
-          <div className="max-w-[90vw] max-h-[90vh]">
-            <Image
-              src={photos[current].src}
-              alt={photos[current].alt}
-              width={photos[current].width}
-              height={photos[current].height}
-              className="w-auto h-auto max-h-[90vh] object-contain"
-              priority
-            />
-          </div>
-
-          {/* suivant */}
-          <button
-            onClick={next}
-            className="absolute right-4 text-white text-4xl px-4"
-          >
-            ›
-          </button>
-        </div>
-      )}
-    </section>
+      <footer data-page className="flex snap-end items-center justify-between px-4 pb-8 pt-4 md:px-8">
+        <span className="cap opacity-50">© {new Date().getFullYear()} Gaspard David</span>
+        <span className="cap opacity-50">{pad(projects.length)} projets</span>
+      </footer>
+    </main>
   );
 }
