@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import Gallery from "@/components/Gallery";
 import Img from "@/components/Img";
 import Theme from "@/components/Theme";
-import { coverOf, getProject, nextOf, projects } from "@/data/projects";
+import { getProject, nextOf, projects } from "@/lib/projects";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -17,7 +17,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const p = getProject((await params).slug);
   if (!p) return {};
-  return { title: p.title, description: p.text ?? `${p.title} — ${p.place}, ${p.year}.` };
+  return { title: p.title, description: p.text ?? `${p.title} — ${[p.place, p.year].filter(Boolean).join(", ")}.` };
 }
 
 export default async function ProjectPage({ params }: Props) {
@@ -31,7 +31,7 @@ export default async function ProjectPage({ params }: Props) {
 
       <header className="px-4 pb-10 pt-[calc(3.5rem+env(safe-area-inset-top)+12vh)] md:px-8 md:pb-16">
         <p className="cap mb-5 opacity-50">
-          {p.place} · {p.year} · {String(p.photos.length).padStart(2, "0")} photos
+          {[p.place, p.year, `${String(p.photos.length).padStart(2, "0")} photos`].filter(Boolean).join(" · ")}
         </p>
         <h1 className="font-serif text-[clamp(3.25rem,11vw,9rem)] leading-[0.9] tracking-[-0.02em]">{p.title}</h1>
         {p.text && <p className="mt-6 max-w-md text-[15px] leading-relaxed opacity-70">{p.text}</p>}
@@ -50,7 +50,7 @@ export default async function ProjectPage({ params }: Props) {
           </p>
         </div>
         <div className="tint relative aspect-[4/5] w-24 shrink-0 overflow-hidden md:w-40">
-          <Img p={coverOf(nx)} sizes="160px" />
+          <Img p={nx.cover.mob} sizes="160px" />
         </div>
       </Link>
     </main>
