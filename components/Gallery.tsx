@@ -5,21 +5,43 @@ import { flushSync } from "react-dom";
 import Link from "next/link";
 import Arrow from "@/components/Arrow";
 import Img from "@/components/Img";
+import { usePager } from "@/components/usePager";
 import type { Photo } from "@/lib/projects";
 
 type Mode = "grand" | "mosaique";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
+// Hauteur occupée en haut par l'en-tête fixe + la barre « Projets / Grand ».
+const topBars = () => document.querySelector<HTMLElement>("[data-bar]")?.getBoundingClientRect().bottom ?? 0;
+
+// Position de défilement qui centre une photo dans la zone visible sous les barres.
+const centered = (el: HTMLElement) => {
+  const r = el.getBoundingClientRect();
+  const h = topBars();
+  return scrollY + r.top + r.height / 2 - (h + (innerHeight - h) / 2);
+};
+
+// Vue « Grand » : le haut de page (titre), chaque photo centrée, puis la fin.
+const stops = () => [
+  0,
+  ...Array.from(document.querySelectorAll<HTMLElement>("[data-shot]")).map(centered),
+  Infinity,
+];
+
 export default function Gallery({ photos, slug }: { photos: Photo[]; slug: string }) {
   const [mode, setMode] = useState<Mode>("grand");
   const top = useRef<HTMLDivElement>(null);
   const n = photos.length;
 
-  // Clic en mosaïque : on rouvre en grand sur la photo choisie.
+  // Une photo par geste, comme l'accueil — seulement en vue « Grand ».
+  usePager({ enabled: mode === "grand", stops });
+
+  // Clic en mosaïque : on rouvre en grand, centré sur la photo choisie.
   const open = (i: number) => {
     flushSync(() => setMode("grand"));
-    document.getElementById(`p${i}`)?.scrollIntoView({ block: "center" });
+    const el = document.getElementById(`p${i}`);
+    if (el) scrollTo(0, centered(el));
   };
 
   const pick = (m: Mode) => {
@@ -31,7 +53,10 @@ export default function Gallery({ photos, slug }: { photos: Photo[]; slug: strin
 
   return (
     <div ref={top} className="scroll-mt-14">
-      <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-30 flex items-center justify-between bg-bg px-4 py-3 transition-colors duration-700 md:px-8">
+      <div
+        data-bar
+        className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-30 flex items-center justify-between bg-bg px-4 py-3 transition-colors duration-700 md:px-8"
+      >
         <Link href={`/#${slug}`} aria-label="Retour aux projets" className="group flex items-center gap-3">
           <span className="transition-transform duration-500 ease-[var(--ease)] group-hover:-translate-x-1">
             <Arrow dir="left" />
@@ -40,12 +65,7 @@ export default function Gallery({ photos, slug }: { photos: Photo[]; slug: strin
         </Link>
         <div className="flex gap-5" role="group" aria-label="Affichage">
           {(["grand", "mosaique"] as const).map((m) => (
-            <button
-              key={m}
-              onClick={() => pick(m)}
-              aria-pressed={mode === m}
-              className="cap ul cursor-pointer pb-0.5"
-            >
+            <button key={m} onClick={() => pick(m)} aria-pressed={mode === m} className="cap ul cursor-pointer pb-0.5">
               {m === "grand" ? "Grand" : "Mosaïque"}
             </button>
           ))}
@@ -53,21 +73,23 @@ export default function Gallery({ photos, slug }: { photos: Photo[]; slug: strin
       </div>
 
       {mode === "grand" ? (
-        <div className="flex flex-col gap-14 px-3 pb-24 pt-6 md:gap-28 md:px-8 md:pt-10">
+        // Grand écart entre les photos : une seule est visible à la fois.
+        <div className="flex flex-col gap-[22svh] px-3 pb-[30svh] pt-[12svh] md:gap-[16svh] md:px-8">
           {photos.map((p, i) => {
             const r = p.w / p.h;
             return (
               <figure
                 key={i}
                 id={`p${i}`}
+                data-shot
                 className="mx-auto"
-                style={{ width: `min(100%, calc((100svh - 9rem) * ${r.toFixed(4)}))` }}
+                style={{ width: `min(100%, calc((100svh - 8.5rem) * ${r.toFixed(4)}))` }}
               >
                 <div className="tint relative" style={{ aspectRatio: `${p.w} / ${p.h}` }}>
                   <Img
                     p={p}
                     preload={i === 0}
-                    sizes={r >= 1 ? "(max-width: 768px) 100vw, 90vw" : "(max-width: 768px) 100vw, 60vw"}
+                    sizes={r >= 1 ? "(max-width: 768px) 100vw, 92vw" : "(max-width: 768px) 100vw, 60vw"}
                   />
                 </div>
                 <figcaption className="cap mt-3 opacity-50">
@@ -87,10 +109,7 @@ export default function Gallery({ photos, slug }: { photos: Photo[]; slug: strin
               className="tint relative mb-2 block w-full cursor-zoom-in overflow-hidden break-inside-avoid md:mb-3"
               style={{ aspectRatio: `${p.w} / ${p.h}` }}
             >
-              <Img
-                p={p}
-                sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
-              />
+              <Img p={p} sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw" />
             </button>
           ))}
         </div>

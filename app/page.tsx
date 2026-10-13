@@ -14,7 +14,7 @@ export default function Home() {
     <main>
       <Theme bg={first.bg} fg={first.fg} extra="html{overscroll-behavior-y:none}" />
       <Sync />
-      <Pager n={projects.length + 1} />
+      <Pager />
       <h1 className="sr-only">Gaspard David — projets photographiques</h1>
 
       {projects.map((p, i) => (
