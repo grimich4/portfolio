@@ -1,26 +1,80 @@
 @import "tailwindcss";
 
+/* Les deux couleurs du site. Surchargées par projet (voir lib/theme). */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #0b0b0b;
+  --fg: #f3f1ec;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-fg: var(--fg);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-display), ui-serif, Georgia, serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background: var(--bg);
+  color: var(--fg);
+  transition: background-color 0.7s var(--ease), color 0.7s var(--ease);
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  transition: background-color 0.7s var(--ease), color 0.7s var(--ease);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+/* Petites capitales espacées pour les légendes. */
+.cap {
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-feature-settings: "tnum";
+}
+
+/* Fond d'attente des images : une teinte entre les deux couleurs. */
+.tint {
+  background: color-mix(in srgb, var(--fg) 8%, var(--bg));
+}
+
+/* Fondu d'apparition des images une fois chargées. */
+.fade {
+  opacity: 0;
+  transition: opacity 0.9s var(--ease);
+}
+.fade[data-ok="1"] {
+  opacity: 1;
+}
+
+/* Lien souligné fin qui se dessine au survol. */
+.ul {
+  background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat;
+  transition: background-size 0.5s var(--ease);
+}
+.ul:hover,
+.ul[aria-current="page"],
+.ul[aria-pressed="true"] {
+  background-size: 100% 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
