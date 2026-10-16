@@ -26,6 +26,7 @@
     "d3-geo": "^3.1.1",
     "eslint": "^9",
     "eslint-config-next": "16.1.0",
+    "polyclip-ts": "^0.16.8",
     "polylabel": "^2.1.0",
     "tailwindcss": "^4",
     "topojson-client": "^3.1.0",

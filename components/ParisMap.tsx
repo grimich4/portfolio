@@ -31,7 +31,7 @@ export default function ParisMap({ arrs, serie }: { arrs: Arr[]; serie: Serie })
     <div data-pm className="pm">
       <MapControl />
 
-      <section className="px-4 pt-[calc(3.5rem+env(safe-area-inset-top))] md:grid md:h-svh md:grid-cols-[clamp(230px,22vw,340px)_1fr] md:gap-[4vw] md:px-8 md:pb-8">
+      <section className="px-4 pt-[calc(var(--hh)+env(safe-area-inset-top))] md:grid md:h-svh md:grid-cols-[clamp(230px,22vw,340px)_1fr] md:gap-[4vw] md:px-8 md:pb-8">
         {/* Panneau : la série, ou l'arrondissement survolé (ordi). */}
         <div className="relative pt-[8vh] md:pt-[6vh]">
           <div className="pm-panel pm-default flex flex-col justify-between md:absolute md:inset-0 md:pt-[6vh]">
@@ -79,8 +79,20 @@ export default function ParisMap({ arrs, serie }: { arrs: Arr[]; serie: Serie })
         </div>
 
         {/* Carte */}
-        <div className="flex items-center py-8 md:py-0">
-          <svg viewBox={vb} className="pm-map block h-auto max-h-full w-full overflow-visible" role="img" aria-label="Carte des vingt arrondissements de Paris">
+        {/* La carte tient toujours dans la hauteur d'écran restante (sinon elle
+            passerait sous la barre du haut sur les écrans larges et bas). */}
+        <div className="flex min-h-0 items-center justify-center py-8 md:py-[3vh]">
+          <svg
+            data-map
+            viewBox={vb}
+            className="pm-map block h-auto overflow-visible"
+            style={{
+              width: `min(100%, calc((100svh - var(--hh) - env(safe-area-inset-top) - 6vh - 2rem) * ${(map.w / map.h).toFixed(4)}))`,
+              aspectRatio: `${map.w} / ${map.h}`,
+            }}
+            role="img"
+            aria-label="Carte des vingt arrondissements de Paris"
+          >
             <defs>
               {/* Découpe des photos : réutilise le contour (pas de tracé en double). */}
               {map.arrs
@@ -124,7 +136,6 @@ export default function ParisMap({ arrs, serie }: { arrs: Arr[]; serie: Serie })
                   data-n={g.n}
                   className={`pm-arr ${a ? "pm-done" : ""}`}
                   style={{ animationDelay: `${(g.n - 1) * 70}ms` }}
-                  vectorEffect="non-scaling-stroke"
                 />
               );
               return a ? (

@@ -11,7 +11,7 @@ const links = [
 
 export default function Contact() {
   return (
-    <main className="min-h-svh px-4 pb-16 pt-[calc(3.5rem+env(safe-area-inset-top)+12vh)] md:px-8">
+    <main className="min-h-svh px-4 pb-16 pt-[calc(var(--hh)+env(safe-area-inset-top)+12vh)] md:px-8">
       <Theme bg="#0b0b0b" fg="#f3f1ec" />
       <p className="cap mb-5 opacity-50">Contact</p>
       <h1 className="font-serif text-[clamp(3.25rem,11vw,9rem)] leading-[0.9] tracking-[-0.02em]">Écrire</h1>
