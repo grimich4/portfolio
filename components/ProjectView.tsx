@@ -8,7 +8,8 @@ import { useTrack } from "@/components/useTrack";
 import type { Photo, Project } from "@/lib/projects";
 
 type Mode = "grand" | "mosaique";
-type Next = { slug: string; title: string; cover: Photo };
+export type Next = { href: string; title: string; cover: Photo; label?: string };
+export type Back = { href: string; label: string };
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -31,7 +32,8 @@ const stops = (track: HTMLElement) => {
   ];
 };
 
-export default function ProjectView({ p, nx }: { p: Project; nx: Next }) {
+export default function ProjectView({ p, nx, back }: { p: Project; nx: Next; back?: Back }) {
+  const ret = back ?? { href: `/#${p.slug}`, label: "Projets" };
   const [mode, setMode] = useState<Mode>("grand");
   const track = useRef<HTMLDivElement>(null);
   const at = useRef(0);
@@ -59,7 +61,7 @@ export default function ProjectView({ p, nx }: { p: Project; nx: Next }) {
   const intro = (
     <header data-intro className="px-4 pb-10 pt-[calc(6.25rem+env(safe-area-inset-top)+12vh)] md:px-8 md:pb-16">
       <p className="cap mb-5 opacity-50">
-        {[p.place, p.year, `${pad(n)} photos`].filter(Boolean).join(" · ")}
+        {[p.place, p.support, p.year, `${pad(n)} photos`].filter(Boolean).join(" · ")}
       </p>
       <h1 className="font-serif text-[clamp(3.25rem,11vw,9rem)] leading-[0.9] tracking-[-0.02em]">{p.title}</h1>
       {p.text && <p className="mt-6 max-w-md text-[15px] leading-relaxed opacity-70">{p.text}</p>}
@@ -68,11 +70,11 @@ export default function ProjectView({ p, nx }: { p: Project; nx: Next }) {
 
   const next = (
     <Link
-      href={`/projets/${nx.slug}`}
+      href={nx.href}
       className="group flex items-end justify-between gap-6 border-t border-current/15 px-4 pb-10 pt-8 md:px-8 md:pb-14"
     >
       <div>
-        <p className="cap mb-3 opacity-50">Projet suivant</p>
+        <p className="cap mb-3 opacity-50">{nx.label ?? "Projet suivant"}</p>
         <p className="font-serif text-[clamp(2.5rem,7vw,5.5rem)] italic leading-none tracking-[-0.02em] transition-transform duration-700 ease-[var(--ease)] group-hover:translate-x-2">
           {nx.title}
         </p>
@@ -89,11 +91,11 @@ export default function ProjectView({ p, nx }: { p: Project; nx: Next }) {
         data-bar
         className="fixed inset-x-0 top-[calc(3.5rem+env(safe-area-inset-top))] z-30 flex items-center justify-between bg-bg px-4 py-3 transition-colors duration-700 md:px-8"
       >
-        <Link href={`/#${p.slug}`} aria-label="Retour aux projets" className="group flex items-center gap-3">
+        <Link href={ret.href} aria-label={`Retour : ${ret.label}`} className="group flex items-center gap-3">
           <span className="transition-transform duration-500 ease-[var(--ease)] group-hover:-translate-x-1">
             <Arrow dir="left" />
           </span>
-          <span className="cap ul pb-0.5">Projets</span>
+          <span className="cap ul pb-0.5">{ret.label}</span>
         </Link>
         <div className="flex gap-5" role="group" aria-label="Affichage">
           {(["grand", "mosaique"] as const).map((m) => (
@@ -111,7 +113,7 @@ export default function ProjectView({ p, nx }: { p: Project; nx: Next }) {
           {/* Ordi : colonne fixe — titre dès l'arrivée, compteur, progression. */}
           <aside className="pointer-events-none fixed bottom-8 left-8 top-[calc(6.25rem+env(safe-area-inset-top)+6vh)] z-20 hidden w-[clamp(200px,19vw,300px)] flex-col justify-between md:flex">
             <div>
-              <p className="cap mb-4 opacity-50">{[p.place, p.year].filter(Boolean).join(" · ")}</p>
+              <p className="cap mb-4 opacity-50">{[p.place, p.support, p.year].filter(Boolean).join(" · ")}</p>
               <h1 className="font-serif text-[clamp(40px,4.2vw,76px)] leading-[0.92] tracking-[-0.015em]">{p.title}</h1>
               {p.text && <p className="mt-5 text-[14px] leading-relaxed opacity-70">{p.text}</p>}
             </div>

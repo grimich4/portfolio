@@ -68,3 +68,128 @@ body {
 .ul[aria-pressed="true"] {
   background-size: 100% 1px;
 }
+
+/* ---------- Carte de Paris (components/ParisMap.tsx) ---------- */
+
+/* Photos en fondu, en noir et blanc ; en couleur et nettes au survol. */
+.pm-photo-in {
+  opacity: 0;
+  animation: pm-show 1.2s var(--ease) forwards;
+}
+@keyframes pm-show {
+  to {
+    opacity: 1;
+  }
+}
+.pm-photo {
+  opacity: 0.36;
+  filter: grayscale(1) contrast(1.05);
+  transition: opacity 0.6s var(--ease), filter 0.6s var(--ease);
+}
+.pm[data-active] .pm-photo {
+  opacity: 0.12;
+}
+.pm .pm-photo[data-on] {
+  opacity: 1;
+  filter: none;
+}
+
+/* Quartiers : filigrane. */
+.pm-q {
+  stroke-opacity: 0.14;
+  stroke-width: 0.5px;
+  pointer-events: none;
+}
+
+/* Arrondissements : contours dessinés un à un dans l'ordre de l'escargot. */
+.pm-arr {
+  fill: transparent;
+  stroke: currentColor;
+  stroke-width: 0.9px;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  pointer-events: all;
+  animation: pm-draw 1.6s var(--ease) forwards;
+  transition: fill 0.4s var(--ease), stroke-width 0.3s var(--ease);
+}
+.pm-arr.pm-done {
+  cursor: pointer;
+}
+.pm-arr[data-on] {
+  fill: color-mix(in srgb, currentColor 7%, transparent);
+  stroke-width: 1.8px;
+}
+.pm-arr.pm-done[data-on] {
+  fill: transparent;
+}
+@keyframes pm-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Numéros (italique : arrondissement réalisé). */
+.pm-num {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  text-anchor: middle;
+  dominant-baseline: central;
+  fill: currentColor;
+  opacity: 0;
+  animation: pm-in 0.9s var(--ease) forwards;
+  transition: opacity 0.4s var(--ease);
+}
+.pm-num-done {
+  font-style: italic;
+}
+.pm-num[data-on].pm-num-done {
+  opacity: 0 !important;
+}
+@keyframes pm-in {
+  to {
+    opacity: 0.85;
+  }
+}
+
+.pm-seine-t {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  fill: currentColor;
+  opacity: 0.55;
+}
+
+@media (max-width: 767px) {
+  .pm-num {
+    font-size: 24px;
+  }
+  .pm-seine-t {
+    font-size: 17px;
+  }
+}
+
+/* Panneau : la série par défaut, l'arrondissement survolé sinon (ordi). */
+.pm-panel {
+  transition: opacity 0.45s var(--ease);
+}
+.pm-hover {
+  opacity: 0;
+  pointer-events: none;
+}
+.pm-hover[data-on] {
+  opacity: 1;
+}
+@media (min-width: 768px) {
+  .pm[data-active] .pm-default {
+    opacity: 0;
+  }
+}
+
+/* Index */
+.pm-item {
+  transition: border-color 0.4s var(--ease), opacity 0.4s var(--ease);
+}
+.pm-item[data-on] {
+  border-color: currentColor;
+}

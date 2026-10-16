@@ -8,7 +8,7 @@ Dans le dossier **Site** de ton Drive, un sous-dossier = un projet :
 
 ```
 Site/
-  01 Paris/
+  01 Lisbonne/
   06 Venise/
     IMG_1234.HEIC
     IMG_1250.jpg
@@ -49,6 +49,41 @@ Couverture téléphone : IMG_1250
   Sinon, les photos sont classées par nom de fichier.
 
 Les lignes sont toutes facultatives.
+
+## La série Paris (onglet « Paris »)
+
+Dans **Site**, crée un dossier nommé exactement **Paris** (sans numéro). Chaque
+sous-dossier = un arrondissement ; le **numéro** devant le nom est
+l'arrondissement (1 à 20) :
+
+```
+Site/
+  Paris/
+    projet            ← Google Doc facultatif : titre et texte de la série
+    11 Oberkampf/     ← 11e arrondissement → /paris/11e
+      IMG_0001.HEIC
+      projet          ← Google Doc facultatif
+    18/               ← sans nom : titre « Butte-Montmartre » par défaut
+```
+
+- L'arrondissement apparaît sur la carte dès qu'il a au moins une photo : sa
+  couverture s'affiche en fondu dans ses limites, en couleur au survol. Les
+  autres restent « à venir ».
+- Un seul dossier par arrondissement.
+- Le Google Doc **projet** d'un arrondissement accepte les mêmes lignes que
+  pour un projet, plus :
+
+  ```
+  Support : Polaroid
+  Quartier : Oberkampf
+  ```
+
+  Le **support** (Polaroid, argentique, numérique, Instax, sténopé…) s'affiche
+  sur la carte, dans l'index et sur la page de l'arrondissement.
+  La **couverture ordi** est aussi celle de la carte.
+- Le Google Doc **projet** placé directement dans **Paris/** règle la série :
+  `Titre : …`, `Texte : …`, `Couleurs : #fond #texte` (par défaut : pierre de
+  Paris et zinc).
 
 ## Autre méthode : directement sur GitHub
 

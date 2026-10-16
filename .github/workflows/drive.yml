@@ -59,7 +59,7 @@ jobs:
         env:
           SUMMARY: ${{ steps.sync.outputs.summary }}
         run: |
-          git add -A public/projets
+          git add -A -- public
           if git diff --cached --quiet; then
             echo "Aucun changement."
             exit 0

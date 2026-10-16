@@ -16,6 +16,10 @@ depuis `main`. Chaque PR obtient une preview Vercel.
 lus au build par `lib/projects.ts`. Il n'y a pas de liste de projets dans le
 code.
 
+**Série Paris** : `public/paris/NN-…/` (NN = arrondissement 1-20, un dossier par
+arrondissement) + `public/paris/serie.json`. Vient du dossier Drive « Site/Paris ».
+Champs en plus : `support`, `quartier`. Pages `/paris` (carte) et `/paris/11e`.
+
 ## Structure
 - `lib/projects.ts` — lecture des dossiers, dimensions, couvertures.
 - `app/page.tsx` — accueil : une couverture plein écran par projet.
@@ -25,9 +29,16 @@ code.
   glisse (`transform` + transition CSS, sous-pixel, carte graphique). Enchaînement en vol
   à vitesse continue, suivi du doigt + élan. **Ne pas revenir à scrollTo** (saccades en
   fin de ralenti, et le smooth scroll natif est coupé par Windows « effets d'animation »).
+- `components/Header.tsx` — liens en ligne sur ordi, « Menu » plein écran sur téléphone.
 - `components/Pager.tsx` — accueil : conteneur fixe + piste qui glisse, une étape par projet, flèches.
 - `components/ProjectView.tsx` — page projet : vue « Grand » (piste, colonne fixe titre + compteur sur ordi, une photo centrée par
   geste) et « Mosaïque » (défilement normal), barre fixe, retour, projet suivant.
+- `app/paris/page.tsx` + `components/ParisMap.tsx` — carte des 20 arrondissements, rendue côté
+  serveur (SVG) ; `components/MapControl.tsx` = survol par délégation (`data-on`), couleurs,
+  retour `#11e`. Styles : section « Carte de Paris » de `globals.css`.
+- `app/paris/[slug]/page.tsx` — page d'un arrondissement (ProjectView, retour vers /paris).
+- `data/paris-map.json` — tracés générés par `scripts/paris-map.mjs` depuis
+  `data/paris-quartiers.geojson` (80 quartiers, Ville de Paris, ODbL : garder la mention).
 - `scripts/variants.mjs` (prebuild) — variantes WebP 480→2400 px pré-calculées + aperçu flou,
   nom avec empreinte, budget de poids par pixel ; cache dans `.next/cache/variants`.
   `public/_img/` est généré (gitignore).

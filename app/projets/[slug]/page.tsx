@@ -26,7 +26,7 @@ export default async function ProjectPage({ params }: Props) {
   return (
     <>
       <Theme bg={p.colors.bg} fg={p.colors.fg} />
-      <ProjectView p={p} nx={{ slug: nx.slug, title: nx.title, cover: nx.cover.mob }} />
+      <ProjectView p={p} nx={{ href: `/projets/${nx.slug}`, title: nx.title, cover: nx.cover.mob }} />
     </>
   );
 }
