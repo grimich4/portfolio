@@ -6,11 +6,15 @@
 // regroupe topologiquement : les arrondissements partagent exactement leurs
 // frontières, et la Seine se déduit des frontières rive gauche / rive droite.
 //
+// Le Bois de Vincennes (12e) est retiré : la carte s'arrête au périphérique
+// de ce côté (voir cutWood). Le Bois de Boulogne (16e) est conservé.
+//
 // À relancer seulement si les données source changent :
 //   node scripts/paris-map.mjs
 import fs from "node:fs";
 import path from "node:path";
 import { geoMercator, geoPath } from "d3-geo";
+import * as pc from "polyclip-ts";
 import polylabel from "polylabel";
 import { merge, mesh } from "topojson-client";
 import { topology } from "topojson-server";
@@ -19,6 +23,12 @@ const W = 1000;
 const src = JSON.parse(fs.readFileSync(path.join("data", "paris-quartiers.geojson"), "utf8"));
 
 const arrOf = (f) => Math.ceil(f.properties.id / 4);
+
+// Bois de Vincennes : coupe en ligne droite le long du périphérique, entre
+// l'angle de la Porte Dorée (fin de la limite avec Saint-Mandé) et la Porte
+// de Charenton (fin de la limite avec Charenton-le-Pont).
+cutWood(12, [2.411549, 48.834076], [2.401662, 48.829413]);
+
 const topo = topology({ q: src }, 1e6);
 const geoms = topo.objects.q.geometries;
 
@@ -33,11 +43,8 @@ for (let n = 1; n <= 20; n++) {
   const d = path1(shape);
   const [[x0, y0], [x1, y1]] = path1.bounds(shape);
   // Point d'étiquette : le point le plus « intérieur » du plus grand polygone,
-  // calculé sur la partie urbaine pour le 12e et le 16e (sans les bois).
-  const urban =
-    n === 12 ? geoms.filter((g) => arrOf(g) === 12 && g.properties.id !== 45)
-    : n === 16 ? geoms.filter((g) => arrOf(g) === 16 && g.properties.id !== 63 && g.properties.id !== 61)
-    : null;
+  // calculé sur la partie urbaine pour le 16e (sans le Bois de Boulogne).
+  const urban = n === 16 ? geoms.filter((g) => arrOf(g) === 16 && g.properties.id !== 63 && g.properties.id !== 61) : null;
   const lab = urban ? merge(topo, urban) : shape;
   const polys = lab.type === "MultiPolygon" ? lab.coordinates : [lab.coordinates];
   const big = polys
@@ -83,6 +90,58 @@ const out = {
 
 fs.writeFileSync(path.join("data", "paris-map.json"), JSON.stringify(out));
 console.log(`data/paris-map.json : ${W}×${H}, ${(JSON.stringify(out).length / 1024).toFixed(0)} Ko`);
+
+// Retire d'un arrondissement la partie située au-delà du segment [a, b] :
+// on prend son contour extérieur, on le coupe aux deux sommets les plus
+// proches de a et b, et l'arc qui part le plus à l'est forme le morceau à
+// retirer de chacun de ses quartiers (différence exacte, mêmes sommets).
+function cutWood(n, a, b) {
+  const qs = src.features.filter((f) => arrOf(f) === n);
+  const all = pc.union(...qs.map((f) => f.geometry.coordinates));
+  const ring = all.sort((p, q) => ringArea(q[0]) - ringArea(p[0]))[0][0];
+  const len = ring.length - 1; // anneau fermé : dernier = premier
+  const near = (t) => {
+    let k = 0;
+    for (let i = 1; i < len; i++) if (dist(ring[i], t) < dist(ring[k], t)) k = i;
+    return k;
+  };
+  const arc = (from, to) => {
+    const out = [];
+    for (let k = from; ; k = (k + 1) % len) {
+      out.push(ring[k]);
+      if (k === to) return out;
+    }
+  };
+  const [i, j] = [near(a), near(b)];
+  const [A, B] = [arc(i, j), arc(j, i)];
+  const east = (r) => Math.max(...r.map((p) => p[0]));
+  const wood = east(A) > east(B) ? A : B;
+  const cut = [[...wood, wood[0]]];
+  for (const f of qs) {
+    const d = pc.difference(f.geometry.coordinates, cut);
+    // Plus grand morceau seulement (écarte d'éventuelles miettes numériques).
+    const keep = d.sort((p, q) => ringArea(q[0]) - ringArea(p[0]))[0];
+    if (!keep) continue;
+    // Même sens de parcours que la source (d3-geo inverse sinon le polygone
+    // et le prend pour « toute la Terre sauf ce quartier »).
+    const cw = signed(f.geometry.coordinates[0]) < 0;
+    for (const r of keep) if (signed(r) < 0 !== cw) r.reverse();
+    f.geometry = { type: "Polygon", coordinates: keep };
+  }
+}
+function signed(r) {
+  let s = 0;
+  for (let i = 0, j = r.length - 1; i < r.length; j = i++) s += (r[j][0] - r[i][0]) * (r[j][1] + r[i][1]);
+  return -s / 2;
+}
+function dist(p, q) {
+  return Math.hypot(p[0] - q[0], p[1] - q[1]);
+}
+function ringArea(r) {
+  let s = 0;
+  for (let i = 0, j = r.length - 1; i < r.length; j = i++) s += (r[j][0] + r[i][0]) * (r[j][1] - r[i][1]);
+  return Math.abs(s / 2);
+}
 
 // Tronçons projetés d'un maillage TopoJSON.
 function parts(m) {

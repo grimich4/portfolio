@@ -34,7 +34,7 @@ export default function Pager({ children }: { children: React.ReactNode }) {
       <button
         onClick={() => go(idx - 1)}
         aria-label="Projet précédent"
-        className={`${tab} top-[calc(3.5rem+env(safe-area-inset-top))] cursor-pointer pb-3 pl-3 pt-1 md:pb-4 md:pl-4 ${idx === 0 ? hid : ""}`}
+        className={`${tab} top-[calc(var(--hh)+env(safe-area-inset-top))] cursor-pointer pb-3 pl-3 pt-1 md:pb-4 md:pl-4 ${idx === 0 ? hid : ""}`}
       >
         <Arrow dir="up" />
       </button>

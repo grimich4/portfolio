@@ -22,23 +22,30 @@ Champs en plus : `support`, `quartier`. Pages `/paris` (carte) et `/paris/11e`.
 
 ## Structure
 - `lib/projects.ts` — lecture des dossiers, dimensions, couvertures.
-- `app/page.tsx` — accueil : une couverture plein écran par projet.
+- `app/page.tsx` — Vitrine (/) : une couverture plein écran par projet, un geste = un projet.
+- `app/projets/page.tsx` — Projets (/projets) : index en petites vignettes, défilement normal.
 - `app/projets/[slug]/page.tsx` — page projet (statique).
 - `components/Cover.tsx` — couverture paysage (écran large) / portrait (écran en hauteur).
 - `components/useTrack.ts` — « un geste = une étape » : la page ne défile pas, le contenu
   glisse (`transform` + transition CSS, sous-pixel, carte graphique). Enchaînement en vol
   à vitesse continue, suivi du doigt + élan. **Ne pas revenir à scrollTo** (saccades en
   fin de ralenti, et le smooth scroll natif est coupé par Windows « effets d'animation »).
-- `components/Header.tsx` — liens en ligne sur ordi, « Menu » plein écran sur téléphone.
+- `components/Header.tsx` — barre du haut (hauteur `--hh` dans globals.css, à utiliser pour tout
+  décalage sous la barre) : onglets en ligne dès 1024 px avec menu déroulant « Projets »
+  (CSS `.dd`, pas de `group-hover` Tailwind : inactif sans souris), « Menu » plein écran en dessous.
+- `components/nav.ts` — page précédente : le retour d'un projet mène à la Vitrine ou à Projets.
 - `components/Pager.tsx` — accueil : conteneur fixe + piste qui glisse, une étape par projet, flèches.
 - `components/ProjectView.tsx` — page projet : vue « Grand » (piste, colonne fixe titre + compteur sur ordi, une photo centrée par
   geste) et « Mosaïque » (défilement normal), barre fixe, retour, projet suivant.
 - `app/paris/page.tsx` + `components/ParisMap.tsx` — carte des 20 arrondissements, rendue côté
   serveur (SVG) ; `components/MapControl.tsx` = survol par délégation (`data-on`), couleurs,
-  retour `#11e`. Styles : section « Carte de Paris » de `globals.css`.
+  retour `#11e`, échelle `--u` (ResizeObserver). Styles : section « Carte de Paris » de
+  `globals.css`. Pas de `vector-effect: non-scaling-stroke` sur les contours animés
+  (`pathLength`) : Chrome ne les trace qu'en partie dès que la carte est agrandie.
 - `app/paris/[slug]/page.tsx` — page d'un arrondissement (ProjectView, retour vers /paris).
 - `data/paris-map.json` — tracés générés par `scripts/paris-map.mjs` depuis
   `data/paris-quartiers.geojson` (80 quartiers, Ville de Paris, ODbL : garder la mention).
+  Le Bois de Vincennes est coupé au périphérique (`cutWood`) ; le Bois de Boulogne est gardé.
 - `scripts/variants.mjs` (prebuild) — variantes WebP 480→2400 px pré-calculées + aperçu flou,
   nom avec empreinte, budget de poids par pixel ; cache dans `.next/cache/variants`.
   `public/_img/` est généré (gitignore).

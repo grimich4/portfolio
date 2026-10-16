@@ -75,6 +75,20 @@ export default function MapControl() {
       if (!to) off();
     };
 
+    // Échelle de la carte : --u = unités de carte par pixel affiché
+    // (la carte est centrée et peut être limitée par la hauteur).
+    const svg = root.querySelector<SVGSVGElement>("svg[data-map]");
+    const scale = () => {
+      if (!svg) return;
+      const vb = svg.viewBox.baseVal;
+      const { width, height } = svg.getBoundingClientRect();
+      if (!width || !height || !vb.width) return;
+      svg.style.setProperty("--u", String(Math.max(vb.width / width, vb.height / height)));
+    };
+    const ro = new ResizeObserver(scale);
+    if (svg) ro.observe(svg);
+    scale();
+
     root.addEventListener("pointerover", over);
     root.addEventListener("pointerout", out);
     root.addEventListener("focusin", over);
@@ -88,6 +102,7 @@ export default function MapControl() {
 
     return () => {
       cancelAnimationFrame(raf);
+      ro.disconnect();
       clearTimeout(tColor);
       clearTimeout(tOff);
       root.removeEventListener("pointerover", over);

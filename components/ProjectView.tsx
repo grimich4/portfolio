@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import Arrow from "@/components/Arrow";
 import Img from "@/components/Img";
+import { usePrevPath } from "@/components/nav";
 import { useTrack } from "@/components/useTrack";
 import type { Photo, Project } from "@/lib/projects";
 
@@ -33,7 +34,10 @@ const stops = (track: HTMLElement) => {
 };
 
 export default function ProjectView({ p, nx, back }: { p: Project; nx: Next; back?: Back }) {
-  const ret = back ?? { href: `/#${p.slug}`, label: "Projets" };
+  // Retour : vers la vitrine si l'on en vient, sinon vers la liste des projets.
+  const from = usePrevPath();
+  const ret =
+    back ?? (from === "/" ? { href: `/#${p.slug}`, label: "Vitrine" } : { href: `/projets#${p.slug}`, label: "Projets" });
   const [mode, setMode] = useState<Mode>("grand");
   const track = useRef<HTMLDivElement>(null);
   const at = useRef(0);
@@ -59,7 +63,7 @@ export default function ProjectView({ p, nx, back }: { p: Project; nx: Next; bac
   };
 
   const intro = (
-    <header data-intro className="px-4 pb-10 pt-[calc(6.25rem+env(safe-area-inset-top)+12vh)] md:px-8 md:pb-16">
+    <header data-intro className="px-4 pb-10 pt-[calc(var(--hh)+2.75rem+env(safe-area-inset-top)+12vh)] md:px-8 md:pb-16">
       <p className="cap mb-5 opacity-50">
         {[p.place, p.support, p.year, `${pad(n)} photos`].filter(Boolean).join(" · ")}
       </p>
@@ -89,7 +93,7 @@ export default function ProjectView({ p, nx, back }: { p: Project; nx: Next; bac
     <>
       <div
         data-bar
-        className="fixed inset-x-0 top-[calc(3.5rem+env(safe-area-inset-top))] z-30 flex items-center justify-between bg-bg px-4 py-3 transition-colors duration-700 md:px-8"
+        className="fixed inset-x-0 top-[calc(var(--hh)+env(safe-area-inset-top))] z-30 flex items-center justify-between bg-bg px-4 py-3 transition-colors duration-700 md:px-8"
       >
         <Link href={ret.href} aria-label={`Retour : ${ret.label}`} className="group flex items-center gap-3">
           <span className="transition-transform duration-500 ease-[var(--ease)] group-hover:-translate-x-1">
@@ -111,7 +115,7 @@ export default function ProjectView({ p, nx, back }: { p: Project; nx: Next; bac
           {/* La page ne défile pas : c'est le contenu qui glisse. */}
           <style>{"html,body{overflow:hidden;overscroll-behavior:none}"}</style>
           {/* Ordi : colonne fixe — titre dès l'arrivée, compteur, progression. */}
-          <aside className="pointer-events-none fixed bottom-8 left-8 top-[calc(6.25rem+env(safe-area-inset-top)+6vh)] z-20 hidden w-[clamp(200px,19vw,300px)] flex-col justify-between md:flex">
+          <aside className="pointer-events-none fixed bottom-8 left-8 top-[calc(var(--hh)+2.75rem+env(safe-area-inset-top)+6vh)] z-20 hidden w-[clamp(200px,19vw,300px)] flex-col justify-between md:flex">
             <div>
               <p className="cap mb-4 opacity-50">{[p.place, p.support, p.year].filter(Boolean).join(" · ")}</p>
               <h1 className="font-serif text-[clamp(40px,4.2vw,76px)] leading-[0.92] tracking-[-0.015em]">{p.title}</h1>
@@ -143,7 +147,7 @@ export default function ProjectView({ p, nx, back }: { p: Project; nx: Next; bac
                       key={i}
                       data-shot
                       className="mx-auto"
-                      style={{ width: `min(100%, calc((100svh - 8rem) * ${r.toFixed(4)}))` }}
+                      style={{ width: `min(100%, calc((100svh - var(--hh) - 4.5rem) * ${r.toFixed(4)}))` }}
                     >
                       <div className="tint relative" style={{ aspectRatio: `${ph.w} / ${ph.h}` }}>
                         <Img
@@ -152,7 +156,7 @@ export default function ProjectView({ p, nx, back }: { p: Project; nx: Next; bac
                           eager={Math.abs(i - (cur - 1)) <= 2}
                           // Largeur réellement affichée : limitée par la hauteur
                           // d'écran pour les verticales, par la colonne sur ordi.
-                          sizes={`(min-width: 768px) min(calc(100vw - 340px), calc((100vh - 8rem) * ${r.toFixed(3)})), min(100vw, calc((100vh - 8rem) * ${r.toFixed(3)}))`}
+                          sizes={`(min-width: 768px) min(calc(100vw - 340px), calc((100vh - 9rem) * ${r.toFixed(3)})), min(100vw, calc((100vh - 9rem) * ${r.toFixed(3)}))`}
                         />
                       </div>
                       <figcaption className="cap mt-3 opacity-50 md:hidden">

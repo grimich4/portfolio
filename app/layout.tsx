@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { GeistSans } from "geist/font/sans";
 import Header from "@/components/Header";
+import { projects } from "@/lib/projects";
 import "./globals.css";
 
 const display = localFont({
@@ -36,7 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="fr" className={`${GeistSans.variable} ${display.variable}`}>
       <body className="min-h-svh">
-        <Header />
+        <Header projects={projects.map((p) => ({ slug: p.slug, title: p.title }))} />
         {children}
       </body>
     </html>

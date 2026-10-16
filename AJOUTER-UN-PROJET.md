@@ -15,7 +15,7 @@ Site/
     projet          ← Google Doc facultatif
 ```
 
-- Le **numéro** devant le nom fixe l'ordre sur l'accueil. Le reste donne le
+- Le **numéro** devant le nom fixe l'ordre (Vitrine, page Projets et menu). Le reste donne le
   titre et l'adresse : `06 Venise` → « Venise », `/projets/venise`.
 - Ajoute les photos comme tu veux : appli Drive sur téléphone, glisser-déposer
   sur l'ordi. Taille d'origine et HEIC acceptés.

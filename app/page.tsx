@@ -24,7 +24,7 @@ export default function Home() {
           data-page
           data-bg={p.colors.bg}
           data-fg={p.colors.fg}
-          className="flex h-svh flex-col px-3 pb-3 pt-[calc(3.5rem+env(safe-area-inset-top))] md:px-8 md:pb-8"
+          className="flex h-svh flex-col px-3 pb-3 pt-[calc(var(--hh)+env(safe-area-inset-top))] md:px-8 md:pb-8"
         >
           <Link
             href={`/projets/${p.slug}`}
