@@ -3,7 +3,7 @@ name: Optimiser les photos
 on:
   push:
     branches: [main]
-    paths: ["public/projets/**"]
+    paths: ["public/projets/**", "public/paris/**"]
   workflow_dispatch:
 
 permissions:
@@ -28,7 +28,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
-          git add -A public/projets
+          git add -A -- public
           if ! git diff --cached --quiet; then
             git commit -m "Photos optimisées"
             git pull --rebase

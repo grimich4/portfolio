@@ -1,9 +1,9 @@
 // Prépare, avant le build, toutes les tailles de chaque photo en WebP
 // + un aperçu flou minuscule (intégré à la page, affiché instantanément).
 //
-//   public/projets/02-voyage/IMG_1.jpg
-//     → public/_img/02-voyage/IMG_1.<empreinte>-480.webp … -2400.webp
-//     → public/_img/manifest.json : { "02-voyage/IMG_1.jpg": { w, h, widths, blur, name } }
+//   public/projets/02-voyage/IMG_1.jpg   (et de même pour public/paris/…)
+//     → public/_img/projets/02-voyage/IMG_1.<empreinte>-480.webp … -2400.webp
+//     → public/_img/manifest.json : { "projets/02-voyage/IMG_1.jpg": { w, h, widths, blur, name } }
 //
 // Les fichiers sont ensuite servis tels quels par le CDN : aucune
 // transformation à la demande, donc aucune attente à la première visite.
@@ -22,7 +22,8 @@ const Q = [78, 72, 66, 60, 54, 48]; // qualité de départ, puis réductions si 
 // feuillages, foule) sont ré-encodées un peu plus bas pour rester légères.
 const BUDGET = (w, h) => Math.round(w * h * 0.11);
 
-const ROOT = path.join(process.cwd(), "public", "projets");
+const PUBLIC = path.join(process.cwd(), "public");
+const ROOTS = ["projets", "paris"];
 const OUT = path.join(process.cwd(), "public", "_img");
 const CACHE = path.join(process.cwd(), ".next", "cache", "variants");
 const IMG = /\.(jpe?g|png|webp)$/i;
@@ -36,14 +37,16 @@ let made = 0, reused = 0;
 const t0 = Date.now();
 
 const jobs = [];
-for (const dir of fs.existsSync(ROOT) ? fs.readdirSync(ROOT) : []) {
-  const d = path.join(ROOT, dir);
-  if (!fs.statSync(d).isDirectory()) continue;
-  for (const f of fs.readdirSync(d)) if (IMG.test(f)) jobs.push([dir, f]);
+for (const root of ROOTS) {
+  const r = path.join(PUBLIC, root);
+  for (const d of fs.existsSync(r) ? fs.readdirSync(r) : []) {
+    if (!fs.statSync(path.join(r, d)).isDirectory()) continue;
+    for (const f of fs.readdirSync(path.join(r, d))) if (IMG.test(f)) jobs.push([`${root}/${d}`, f]);
+  }
 }
 
 const one = async ([dir, f]) => {
-  const src = path.join(ROOT, dir, f);
+  const src = path.join(PUBLIC, dir, f);
   const buf = fs.readFileSync(src);
   const hash = crypto.createHash("sha1").update(buf).digest("hex").slice(0, 16);
   const stem = f.replace(/\.[^.]+$/, "");
